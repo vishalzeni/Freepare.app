@@ -34,7 +34,7 @@ import axios from "axios";
 import { debounce } from "lodash";
 import CircularProgress from "@mui/material/CircularProgress";
 
-const BASE_URL = "https://freepare.onrender.com";
+const BASE_URL = "http://82.112.236.241:5000";
 
 const Dashboard = () => {
   const [users, setUsers] = useState([]);

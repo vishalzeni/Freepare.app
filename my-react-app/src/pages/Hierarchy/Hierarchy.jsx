@@ -67,7 +67,7 @@ const Hierarchy = () => {
   const [institutionType, setInstitutionType] = useState(null);
 
   const entityMap = useMemo(() => flattenEntities(data), [data]);
-  const BASE_URL = "https://freepare.onrender.com";
+  const BASE_URL = "http://82.112.236.241:5000";
 
   useEffect(() => {
     const fetchData = async (retries = 3) => {

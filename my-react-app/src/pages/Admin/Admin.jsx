@@ -32,7 +32,7 @@ import ExamList from "../ExamsList";
 import AdminCode from "../Admin/AdminCode";
 import axios from "axios";
 
-axios.defaults.baseURL = "https://freepare.onrender.com"; // Add your base URL here
+axios.defaults.baseURL = "http://82.112.236.241:5000"; // Add your base URL here
 
 const Admin = () => {
   const [selectedComponent, setSelectedComponent] = useState(null);

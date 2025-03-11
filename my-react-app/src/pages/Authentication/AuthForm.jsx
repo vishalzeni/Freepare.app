@@ -18,7 +18,7 @@ import PasswordStrengthBar from "react-password-strength-bar";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import img from "../../Assets/Freepare_LogIn.png";
 
-const BASE_URL = "https://freepare.onrender.com";
+const BASE_URL = "http://82.112.236.241:5000";
 
 const AuthForm = ({ type }) => {
   const [email, setEmail] = useState("");

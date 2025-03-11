@@ -39,7 +39,7 @@ import axios from "axios";
 import { debounce } from "lodash";
 import PropTypes from "prop-types";
 
-const BASE_URL = "https://freepare.onrender.com/api";
+const BASE_URL = "http://82.112.236.241:5000/api";
 
 const ExamsList = () => {
   const [state, setState] = useState({
