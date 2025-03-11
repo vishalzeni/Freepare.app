@@ -330,16 +330,24 @@ app.post("/api/exam", async (req, res) => {
 
 app.get("/api/exams", async (req, res) => {
   try {
-    // Fetch all exams from the Exam collection
-    const exams = await Exam.find(); // You can add any filters if needed (e.g., by examId, examName, etc.)
+    let { page = 1, limit = 12, searchQuery = "", sortOrder = "A-Z" } = req.query;
+    
+    page = parseInt(page);
+    limit = parseInt(limit);
+    
+    const query = searchQuery
+      ? { examName: { $regex: searchQuery, $options: "i" } }
+      : {};
 
-    // If no exams are found
-    if (exams.length === 0) {
-      return res.status(404).json({ message: "No exams found" });
-    }
+    const sort = sortOrder === "A-Z" ? { examName: 1 } : { examName: -1 };
 
-    // Respond with the exams data
-    res.status(200).json(exams);
+    const total = await Exam.countDocuments(query);
+    const exams = await Exam.find(query)
+      .sort(sort)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({ exams, total });
   } catch (err) {
     console.error("Error fetching exams:", err);
     res

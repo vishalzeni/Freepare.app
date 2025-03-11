@@ -20,7 +20,7 @@ const questionSchema = new mongoose.Schema({
 
 // Create the Exam schema
 const examSchema = new mongoose.Schema({
-  examId: { type: String }, // Add examId directly here
+  examId: { type: String, unique: true, index: true }, // Add examId directly here
   examName: { type: String, trim: true }, // Name of the exam
   questions: [questionSchema], // Array of questions
   createdAt: { type: Date, default: Date.now },

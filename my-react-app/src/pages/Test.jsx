@@ -27,7 +27,7 @@ const useFetchExamData = (examId) => {
   useEffect(() => {
     if (examId) {
       setLoading(true);
-      fetch(`http://82.112.236.241:5000/api/exams`)
+      fetch(`http://82.112.236.241:5000/api/exams/${examId}`)
         .then((response) => {
           if (!response.ok) {
             throw new Error(`Server Error: ${response.statusText}`);
@@ -35,12 +35,7 @@ const useFetchExamData = (examId) => {
           return response.json();
         })
         .then((data) => {
-          const selectedExam = data.find((exam) => exam.examId === examId);
-          if (selectedExam) {
-            setExamData(selectedExam);
-          } else {
-            setError("Exam not found");
-          }
+          setExamData(data);
         })
         .catch((err) => {
           setError(
@@ -54,6 +49,7 @@ const useFetchExamData = (examId) => {
         });
     }
   }, [examId]);
+  
 
   return { examData, error, loading };
 };

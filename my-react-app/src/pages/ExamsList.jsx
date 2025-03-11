@@ -1,9 +1,8 @@
 import React, {
   useEffect,
   useState,
-  useMemo,
   useCallback,
-  useRef,
+  useMemo,
 } from "react";
 import {
   Box,
@@ -34,7 +33,7 @@ import {
   Delete as DeleteIcon,
   Search as SearchIcon,
   Clear as ClearIcon,
-} from "@mui/icons-material"; // Import icons
+} from "@mui/icons-material";
 import axios from "axios";
 import { debounce } from "lodash";
 import PropTypes from "prop-types";
@@ -44,12 +43,12 @@ const BASE_URL = "http://82.112.236.241:5000/api";
 const ExamsList = () => {
   const [state, setState] = useState({
     exams: [],
-    filteredExams: [],
     loading: true,
     error: null,
     searchQuery: "",
     sortOrder: "A-Z",
     currentPage: 1,
+    totalExams: 0,
     openSnackbar: false,
     snackbarMessage: "",
     snackbarSeverity: "error",
@@ -62,73 +61,41 @@ const ExamsList = () => {
     deleteDialogOpen: false,
     examToDelete: null,
     mutationLoading: false,
+    paginationLoading: false,
   });
 
-  const examsPerPage = 12; // Number of cards per page
+  const examsPerPage = 12;
 
-  const fetchExams = async (retries = 3) => {
+  const fetchExams = async (page = 1, limit = examsPerPage, searchQuery = "", sortOrder = "A-Z") => {
+    setState((prevState) => ({ ...prevState, paginationLoading: true }));
     try {
-      const cancelToken = axios.CancelToken.source();
       const response = await axios.get(`${BASE_URL}/exams`, {
-        cancelToken: cancelToken.token,
+        params: { page, limit, searchQuery, sortOrder },
       });
       setState((prevState) => ({
         ...prevState,
-        exams: response.data,
+        exams: response.data.exams,
+        totalExams: response.data.total,
         loading: false,
+        paginationLoading: false,
       }));
     } catch (error) {
-      if (axios.isCancel(error)) return;
-      if (retries > 0) {
-        setTimeout(() => fetchExams(retries - 1), 1000);
-      } else {
-        let errorMessage = "Failed to load exams!";
-        if (error.response) {
-          switch (error.response.status) {
-            case 404:
-              errorMessage = "Exams data not found.";
-              break;
-            case 500:
-              errorMessage = "Server error. Please try again later.";
-              break;
-            default:
-              errorMessage = "An unexpected error occurred.";
-          }
-        }
-        setState((prevState) => ({
-          ...prevState,
-          error: errorMessage,
-          snackbarMessage: errorMessage,
-          openSnackbar: true,
-          loading: false,
-        }));
-      }
+      setState((prevState) => ({
+        ...prevState,
+        error: 'Failed to fetch exams',
+        loading: false,
+        paginationLoading: false,
+      }));
     }
   };
 
-  // Fetch exams data with retry logic
   useEffect(() => {
-    fetchExams();
-  }, []);
-
-  useEffect(() => {
-    setState((prevState) => {
-      const searchLower = prevState.searchQuery.toLowerCase(); // Ensure case-insensitivity
-      return {
-        ...prevState,
-        filteredExams: prevState.exams.filter(
-          (exam) =>
-            (exam.examName &&
-              exam.examName.toLowerCase().includes(searchLower)) ||
-            (exam.examId && exam.examId.toLowerCase().includes(searchLower))
-        ),
-      };
-    });
-  }, [state.searchQuery, state.exams]);
+    fetchExams(state.currentPage, examsPerPage, state.searchQuery, state.sortOrder);
+  }, [state.currentPage, state.searchQuery, state.sortOrder]);
 
   const debouncedSearch = useCallback(
     debounce((query) => {
-      setState((prevState) => ({ ...prevState, searchQuery: query }));
+      setState((prevState) => ({ ...prevState, searchQuery: query, currentPage: 1 }));
     }, 500),
     []
   );
@@ -144,7 +111,6 @@ const ExamsList = () => {
     setState((prevState) => ({
       ...prevState,
       inputValue: value,
-      currentPage: 1,
     }));
     debouncedSearch(trimmedQuery);
   };
@@ -157,23 +123,11 @@ const ExamsList = () => {
     }));
   };
 
-  const sortedExams = useMemo(() => {
-    return [...state.filteredExams].sort((a, b) => {
-      if (state.sortOrder === "A-Z") {
-        return a.examName.localeCompare(b.examName);
-      } else if (state.sortOrder === "Z-A") {
-        return b.examName.localeCompare(a.examName);
-      }
-      return 0;
-    });
-  }, [state.filteredExams, state.sortOrder]);
-
-  const indexOfLastExam = state.currentPage * examsPerPage;
-  const indexOfFirstExam = indexOfLastExam - examsPerPage;
-  const currentExams = sortedExams.slice(indexOfFirstExam, indexOfLastExam);
-
   const handlePageChange = (event, value) => {
-    setState((prevState) => ({ ...prevState, currentPage: value }));
+    setState((prevState) => ({
+      ...prevState,
+      currentPage: value,
+    }));
   };
 
   const handleClearSearch = () => {
@@ -308,7 +262,7 @@ const ExamsList = () => {
 
   const handleRetry = () => {
     setState((prevState) => ({ ...prevState, loading: true, error: null }));
-    fetchExams();
+    fetchExams(state.currentPage, examsPerPage, state.searchQuery, state.sortOrder);
   };
 
   if (state.loading) {
@@ -350,25 +304,24 @@ const ExamsList = () => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-
-        <Typography
-          variant="h2"
-          sx={{
-            background: "linear-gradient(90deg, #066C98, #2CACE3)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            color: "#066C98", // Fallback color
-            fontWeight: "500",
-            fontSize: { xs: "1.8rem", sm: "2.5rem" },
-            mb: { xs: 2, sm: 0 },
-          }}
-        >
-          Uploaded Tests
-        </Typography>
-        <Typography variant="h6" sx={{ color: "grey.600" }}>
-          <em> (Total {state.exams.length} Tests)</em>
-        </Typography>
-          </Box>
+          <Typography
+            variant="h2"
+            sx={{
+              background: "linear-gradient(90deg, #066C98, #2CACE3)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              color: "#066C98",
+              fontWeight: "500",
+              fontSize: { xs: "1.8rem", sm: "2.5rem" },
+              mb: { xs: 2, sm: 0 },
+            }}
+          >
+            Uploaded Tests
+          </Typography>
+          <Typography variant="h6" sx={{ color: "grey.600" }}>
+            <em> (Total {state.totalExams} Tests)</em>
+          </Typography>
+        </Box>
         <Box
           sx={{
             display: "flex",
@@ -416,8 +369,8 @@ const ExamsList = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {currentExams.length > 0 ? (
-          currentExams.map((exam) => (
+        {state.exams.length > 0 ? (
+          state.exams.map((exam) => (
             <MemoizedExamCard
               key={exam._id}
               exam={exam}
@@ -436,14 +389,18 @@ const ExamsList = () => {
         )}
       </Grid>
 
-      {state.filteredExams.length > examsPerPage && (
+      {state.totalExams > examsPerPage && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-          <Pagination
-            count={Math.ceil(state.filteredExams.length / examsPerPage)}
-            page={state.currentPage}
-            onChange={handlePageChange}
-            color="primary"
-          />
+          {state.paginationLoading ? (
+            <CircularProgress />
+          ) : (
+            <Pagination
+              count={Math.ceil(state.totalExams / examsPerPage)}
+              page={state.currentPage}
+              onChange={handlePageChange}
+              color="primary"
+            />
+          )}
         </Box>
       )}
 

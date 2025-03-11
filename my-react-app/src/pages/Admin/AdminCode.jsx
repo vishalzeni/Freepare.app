@@ -32,7 +32,7 @@ import {
 } from "@mui/icons-material";
 
 // Set the base URL for axios
-axios.defaults.baseURL = "https://freepare.onrender.com";
+axios.defaults.baseURL = "http://82.112.236.241:5000";
 
 function AdminCode() {
   const [adminCode, setAdminCode] = useState("");
