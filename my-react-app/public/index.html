@@ -1,12 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="manifest.json">
-    <title>Freepare</title>
-</head>
-<body>
-    <div id="root"></div>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="FREEPARE offers comprehensive free exam preparation resources, including mock tests, study materials, and updated question banks tailored for competitive exams. Start your journey to success today!"
+    />
+    <meta
+      name="keywords"
+      content="free exam preparation, mock tests, competitive exams, study materials, FREEPARE, online learning, practice tests"
+    />
+    <meta name="author" content="FREEPARE Team" />
+    <meta name="robots" content="index, follow" />
+
+    <meta property="og:title" content="FREEPARE - Your Path to Success" />
+    <meta
+      property="og:description"
+      content="Empower your exam preparation with FREEPARE's free mock tests and study resources. Learn at your own pace, anytime, anywhere."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.freepare.com/" />
+    <meta property="og:image" content="/assets/images/Freepare_FavIcon.png" />
+    <meta property="og:image:alt" content="FREEPARE Logo" />
+
+    <link rel="preload" href="Freepare_Logo.png" as="image" />
+    <link
+      rel="preload"
+      href="/my-react-app/src/Assets/Freepare_FavIcon2.png"
+      as="image"
+    />
+    <link rel="manifest" href="/manifest.json" />
+    <link
+      rel="icon"
+      href="Freepare_FavIcon2.png"
+      type="image/png"
+    />
+
+    <title>FREEPARE - Free Exam Preparation Resources</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      .loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        z-index: 9999;
+        animation: backgroundPulse 2s infinite ease-in-out;
+      }
+
+      .loader img {
+        margin-bottom: 1.5rem;
+        animation: pulse 1.5s infinite ease-in-out;
+      }
+
+      .loader-bar-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: #e0e0e0;
+        overflow: hidden;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .loader-bar {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, #007bff, #00c4ff);
+        box-shadow: 0 0 10px rgba(0, 123, 255, 0.5),
+          0 0 20px rgba(0, 196, 255, 0.5);
+        transition: width 0.1s linear;
+      }
+
+      .main-content {
+        min-height: 100vh;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes fadeOutScale {
+        0% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.2);
+        }
+      }
+
+      @keyframes backgroundPulse {
+        0% {
+          background-color: #f5f5f5;
+        }
+        50% {
+          background-color: #e0e0e0;
+        }
+        100% {
+          background-color: #f5f5f5;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .loader-bar-container {
+          width: 200px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loader Section -->
+    <div id="loader" class="loader" aria-live="polite">
+      <img
+        src="Freepare_Logo.png"
+        alt="FREEPARE Loading Logo"
+        width="50%"
+        loading="eager"
+      />
+      <div
+        class="loader-bar-container"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+      >
+        <div class="loader-bar" id="progressBar"></div>
+      </div>
+    </div>
+
+    <!-- Main Content Section -->
+    <main
+      id="content"
+      class="main-content"
+      style="display: none"
+      aria-hidden="true"
+    >
+      <div id="root" role="main"></div>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const loader = document.getElementById("loader");
+        const content = document.getElementById("content");
+        const progressBar = document.getElementById("progressBar");
+        const loaderBarContainer = document.querySelector(
+          ".loader-bar-container"
+        );
+
+        let progress = 0;
+        const totalTime = 1500;
+        const intervalTime = 30;
+        const steps = totalTime / intervalTime;
+        const increment = 100 / steps;
+
+        const loadingInterval = setInterval(() => {
+          progress += increment;
+          if (progress >= 100) {
+            progress = 100;
+            clearInterval(loadingInterval);
+          }
+          progressBar.style.width = `${progress}%`;
+          loaderBarContainer.setAttribute(
+            "aria-valuenow",
+            Math.round(progress)
+          );
+        }, intervalTime);
+
+        setTimeout(() => {
+          loader.style.animation = "fadeOutScale 0.5s ease-out forwards";
+
+          setTimeout(() => {
+            loader.style.display = "none";
+            content.style.display = "block";
+
+            setTimeout(() => {
+              content.style.opacity = "1";
+              content.style.transform = "translateY(0)";
+              content.setAttribute("aria-hidden", "false");
+            }, 100);
+          }, 500);
+        }, totalTime);
+      });
+    </script>
+  </body>
 </html>

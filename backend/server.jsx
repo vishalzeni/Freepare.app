@@ -257,6 +257,31 @@ app.put("/api/entities/:id/renameTestName", async (req, res) => {
   }
 });
 
+// Route to add a video link to an entity
+app.put("/api/entities/:id/addVideoLink", async (req, res) => {
+  try {
+    const { videoLink } = req.body;
+    if (!videoLink || !videoLink.trim()) {
+      return res.status(400).json({ message: "Video link cannot be empty." });
+    }
+
+    const updatedEntity = await Entity.findByIdAndUpdate(
+      req.params.id,
+      { videoLink },
+      { new: true }
+    );
+
+    if (!updatedEntity) {
+      return res.status(404).json({ message: "Entity not found." });
+    }
+
+    res.json(updatedEntity);
+  } catch (err) {
+    console.error("Error adding video link:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
 app.delete("/api/entities/:id", async (req, res) => {
   try {
     const entity = await Entity.findById(req.params.id);

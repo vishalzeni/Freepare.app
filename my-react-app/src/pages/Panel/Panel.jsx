@@ -22,6 +22,7 @@ import {
   ExpandLess,
   ExpandMore,
   DragIndicator,
+  Add, // Add this import
 } from "@mui/icons-material";
 import { AssignmentOutlined, MenuBook, Category } from "@mui/icons-material";
 import axios from "axios";
@@ -376,6 +377,34 @@ const Panel = () => {
     }
   };
 
+  const addVideoLink = async (entityId) => {
+    const videoLink = prompt("Please enter the video link:");
+    if (videoLink) {
+      try {
+        const response = await axios.put(`${BASE_URL}/entities/${entityId}/addVideoLink`, {
+          videoLink,
+        });
+
+        const updateInHierarchy = (items) =>
+          items.map((item) =>
+            item._id === entityId
+              ? { ...item, ...response.data }
+              : { ...item, children: updateInHierarchy(item.children) }
+          );
+
+        setData(updateInHierarchy(data));
+        showSnackbar(`Video link added successfully`, "success");
+      } catch (error) {
+        const message =
+          error.response?.data?.message ||
+          (error.message.includes("Network Error")
+            ? "Network Error - Check Internet Connection"
+            : "Server Error - Please Try Again Later");
+        showSnackbar(message, "error");
+      }
+    }
+  };
+
   const undoDelete = async () => {
     if (!undoState.entity) return;
 
@@ -669,14 +698,38 @@ const Panel = () => {
                     aria-label={`Edit test name for ${entity.name}`}
                   />
                 ) : (
+                  <Tooltip title="Double Tap to Edit Test Name">
                   <Typography
                     variant="body2"
                     color="textSecondary"
+                    sx={{cursor: "pointer"}}
                     onDoubleClick={() => handleTestNameDoubleClick(entity)}
                     aria-label={`Test name for ${entity.name}`}
                   >
                     <strong>Test Name -</strong> {entity.testName}
                   </Typography>
+                  </Tooltip>
+                )}
+                {entity.videoLink ? (
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    sx={{ mt: 1 }}
+                    aria-label={`Video link for ${entity.name}`}
+                  >
+                    <strong>Video Link -</strong> {entity.videoLink}
+                  </Typography>
+                ) : (
+                  <Tooltip title="Add Video Link">
+                    <IconButton
+                      onClick={() => addVideoLink(entity._id)}
+                      color="primary"
+                      aria-label="Add Video Link"
+                      sx={{ mt: 1 }}
+                    >
+                      <Add />
+                    </IconButton>
+                  </Tooltip>
                 )}
               </Box>
             )}

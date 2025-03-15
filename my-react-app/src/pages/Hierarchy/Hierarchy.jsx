@@ -13,7 +13,6 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
-  Container,
 } from "@mui/material";
 import {
   Dialog,
@@ -583,13 +582,24 @@ const Hierarchy = () => {
   }
   if (!data.length) {
     return (
-      <Box sx={{ textAlign: "center", py: 3 }}>
-        <Typography variant="h6" sx={{ marginTop: "15px", color: COLORS.grey }}>
-          No data available at the moment. Please try again later.
-        </Typography>
-      </Box>
+      <Typography
+        variant="body2"
+        sx={{
+          marginTop: "20px",
+          color: COLORS.grey,
+          fontSize: { xs: "14px", sm: "16px", md: "18px" }, // Responsive font size
+          textAlign: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+        }}
+      >
+        ⏳ Server is busy. Please come back later.
+      </Typography>
     );
   }
+
   return (
     <Grid
       sx={{
@@ -996,8 +1006,7 @@ const Hierarchy = () => {
                                                             {question[
                                                               `option${option}Image`
                                                             ] && (
-                                                              <Box
-                                                              >
+                                                              <Box>
                                                                 <img
                                                                   src={
                                                                     question[
@@ -1005,15 +1014,28 @@ const Hierarchy = () => {
                                                                     ]
                                                                   }
                                                                   alt={`Option ${option}`}
-                                                                  onLoad={(e) => {
-                                                                    const img = e.target;
-                                                                    if (img.naturalWidth > 50 || img.naturalHeight > 50) {
-                                                                      img.style.width = `${Math.max(img.naturalWidth, 50)}px`;
-                                                                      }
+                                                                  onLoad={(
+                                                                    e
+                                                                  ) => {
+                                                                    const img =
+                                                                      e.target;
+                                                                    if (
+                                                                      img.naturalWidth >
+                                                                        50 ||
+                                                                      img.naturalHeight >
+                                                                        50
+                                                                    ) {
+                                                                      img.style.width = `${Math.max(
+                                                                        img.naturalWidth,
+                                                                        50
+                                                                      )}px`;
+                                                                    }
                                                                   }}
                                                                   style={{
-                                                                    maxWidth: "80px", // Max size limit
-                                                                    objectFit: "contain",
+                                                                    maxWidth:
+                                                                      "80px", // Max size limit
+                                                                    objectFit:
+                                                                      "contain",
                                                                   }}
                                                                 />
                                                               </Box>
