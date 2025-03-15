@@ -31,7 +31,7 @@ const JWT_SECRET = "your_jwt_secret_key"; // Store this in an env variable for s
 // MongoDB Connection
 mongoose
   .connect(
-    "mongodb+srv://contentsimplified4u:content%40123@cluster0.aad41.mongodb.net/hierarchy?retryWrites=true&w=majority&tls=false"
+    "mongodb+srv://contentsimplified4u:content%40123@cluster0.aad41.mongodb.net/hierarchy"
   )
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("MongoDB Connection Error: ", err));
