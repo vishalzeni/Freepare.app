@@ -74,8 +74,8 @@ const ExamsList = () => {
       });
       setState((prevState) => ({
         ...prevState,
-        exams: response.data.exams,
-        totalExams: response.data.total,
+        exams: response.data.exams || [], // Fallback to an empty array
+      totalExams: response.data.total || 0, // Fallback to 0
         loading: false,
         paginationLoading: false,
       }));
@@ -85,6 +85,8 @@ const ExamsList = () => {
         error: 'Failed to fetch exams',
         loading: false,
         paginationLoading: false,
+        exams: [], // Fallback to an empty array
+      totalExams: 0, // Fallback to 0
       }));
     }
   };

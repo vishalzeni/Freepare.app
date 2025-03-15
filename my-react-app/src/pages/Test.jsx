@@ -167,15 +167,24 @@ const TestPage = () => {
   ];
 
   return (
-    <>
-    <DisableCopy/>
-      <Navbar />
+  <>
+    <DisableCopy />
+    <Navbar />
+    <Box
+      sx={{
+        background: "#e3f2fd",
+        minHeight: "100vh",
+        overflowY: "auto",
+        padding: { xs: 2, md: 4 },
+        
+      }}
+    >
       <Box
         sx={{
-          background: "#e3f2fd",
-          minHeight: "100vh",
-          overflowY: "auto",
-          padding: 4,
+          maxWidth: "1200px",
+          margin: "0 auto",
+          width: "100%",
+          overflowX: { xs: "auto", md: "visible" }, // Horizontal scroll on mobile
         }}
       >
         {!examId && (
@@ -185,6 +194,7 @@ const TestPage = () => {
               marginBottom: "1rem",
               backgroundColor: "#fff3cd",
               color: "#856404",
+              minWidth: "1200px", // Maintain full width on mobile
             }}
           >
             No exam ID provided. Please navigate here correctly.
@@ -201,12 +211,15 @@ const TestPage = () => {
         )}
 
         {processedExamData && (
-          <Box>
+          <Box sx={{ minWidth: "1200px" }}> {/* Ensure content doesn't shrink */}
             <Box
               display="flex"
               justifyContent="center"
               alignItems="center"
-              sx={{ marginBottom: "1.5rem" }}
+              sx={{ marginBottom: "1.5rem",
+              marginTop: { xs: "2rem", sm: "1rem" },
+              justifyContent: { xs: "flex-start", sm: "center" },
+               }}
             >
               <Typography
                 variant="h2"
@@ -222,7 +235,6 @@ const TestPage = () => {
             </Box>
             {isSubmitted && (
               <>
-                {/* Full Screen Results Box */}
                 <Box
                   sx={{
                     padding: "1.5rem",
@@ -243,27 +255,24 @@ const TestPage = () => {
                       flexWrap: "wrap",
                     }}
                   >
-                    {/* Results Header */}
                     <Typography
                       variant="h3"
                       sx={{
                         fontWeight: "600",
                         color: "#1976d2",
                         marginBottom: { xs: "1.5rem", sm: "0rem" },
-                        width: { xs: "100%", sm: "auto" }, // Ensures the header is full width on small screens
+                        width: { xs: "100%", sm: "auto" },
                       }}
                     >
                       <strong>Test Result</strong>
                     </Typography>
-
-                    {/* Results Summary (Inline layout with space between) */}
                     <Box
                       sx={{
                         display: "flex",
                         gap: { xs: 1, sm: 2 },
-                        width: { xs: "100%", sm: "45%" }, // Stack on small screens, inline on larger screens
-                        flexDirection: { xs: "column", sm: "row" }, // Stack vertically on small screens
-                        alignItems: { xs: "flex-start", sm: "center" }, // Align items to the left on small screens
+                        width: { xs: "100%", sm: "45%" },
+                        flexDirection: { xs: "column", sm: "row" },
+                        alignItems: { xs: "flex-start", sm: "center" },
                       }}
                     >
                       <Typography
@@ -293,20 +302,17 @@ const TestPage = () => {
                       </Typography>
                     </Box>
                   </Box>
-
-                  {/* Pie Chart and Overall Score */}
                   <Box
                     sx={{
                       width: "100%",
-                      maxWidth: "900px", // Limiting width for better control on large screens
-                      margin: "0 auto", // Centering the box horizontally
+                      maxWidth: "900px",
+                      margin: "0 auto",
                       display: "flex",
-                      flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
-                      justifyContent: "space-between", // Space between the two items (pie chart and score)
-                      alignItems: "center", // Centering both items
+                      flexDirection: { xs: "column", sm: "row" },
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
-                    {/* Pie Chart */}
                     <Box
                       sx={{
                         flex: 1,
@@ -335,8 +341,6 @@ const TestPage = () => {
                         </PieChart>
                       </ResponsiveContainer>
                     </Box>
-
-                    {/* Overall Score */}
                     <Box
                       sx={{
                         width: "100%",
@@ -381,8 +385,8 @@ const TestPage = () => {
                           border: "1px solid #ddd",
                           backgroundColor: "#ffffff",
                           boxShadow: 3,
-
                           transition: "all 0.3s ease",
+                          width: "100%",
                         }}
                       >
                         <Typography
@@ -403,7 +407,7 @@ const TestPage = () => {
                               style={{
                                 marginBottom: question.questionImage
                                   ? "4rem"
-                                  : "0", // Conditional margin
+                                  : "0",
                                 flexGrow: 1,
                                 marginLeft: "1rem",
                                 marginRight: "1rem",
@@ -479,7 +483,6 @@ const TestPage = () => {
                                       >
                                         {option}:
                                       </Typography>
-
                                       <Typography
                                         sx={{
                                           color: isSubmitted
@@ -500,15 +503,20 @@ const TestPage = () => {
                                         <img
                                           src={question[`option${option}Image`]}
                                           alt={`Option ${option}`}
-                                          
                                           onLoad={(e) => {
                                             const img = e.target;
-                                            if (img.naturalWidth > 50 || img.naturalHeight > 50) {
-                                              img.style.width = `${Math.max(img.naturalWidth, 50)}px`;
-                                              }
+                                            if (
+                                              img.naturalWidth > 50 ||
+                                              img.naturalHeight > 50
+                                            ) {
+                                              img.style.width = `${Math.max(
+                                                img.naturalWidth,
+                                                50
+                                              )}px`;
+                                            }
                                           }}
                                           style={{
-                                            maxWidth: "100px", // Max size limit
+                                            maxWidth: "100px",
                                             objectFit: "contain",
                                           }}
                                         />
@@ -590,7 +598,9 @@ const TestPage = () => {
               <Box
                 display="flex"
                 justifyContent="center"
-                sx={{ marginTop: "2rem" }}
+                sx={{ marginTop: "2rem",
+                  justifyContent: { xs: "flex-start", sm: "center" },
+                 }}
               >
                 <Button
                   variant="contained"
@@ -610,24 +620,25 @@ const TestPage = () => {
           </Box>
         )}
       </Box>
+    </Box>
 
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
+    <Snackbar
+      open={snackbarOpen}
+      autoHideDuration={6000}
+      onClose={handleSnackbarClose}
+    >
+      <Alert
         onClose={handleSnackbarClose}
+        severity="error"
+        sx={{ width: "100%" }}
       >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity="error"
-          sx={{ width: "100%" }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+        {snackbarMessage}
+      </Alert>
+    </Snackbar>
 
-      <SessionExpireDialog />
-    </>
-  );
+    <SessionExpireDialog />
+  </>
+);
 };
 
 export default TestPage;
