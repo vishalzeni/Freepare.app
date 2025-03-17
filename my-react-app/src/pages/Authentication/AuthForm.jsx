@@ -56,24 +56,6 @@ const AuthForm = ({ type }) => {
     return re.test(String(email).toLowerCase());
   }, []);
 
-  const validatePhone = useCallback((phone) => {
-    const re = /^\d{10}$/;
-    return re.test(String(phone));
-  }, []);
-
-  const formatPhoneNumber = (phone) => {
-    const cleaned = ('' + phone).replace(/\D/g, '');
-    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-    if (match) {
-      return `(${match[1]}) ${match[2]}-${match[3]}`;
-    }
-    return phone;
-  };
-
-  const sanitizePhoneNumber = (phone) => {
-    return phone.replace(/\D/g, '');
-  };
-
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setError("");
@@ -83,11 +65,6 @@ const AuthForm = ({ type }) => {
 
     if (!validateEmail(email)) {
       setEmailError("Invalid email format");
-      return;
-    }
-
-    if (type === "signup" && !validatePhone(phone)) {
-      setPhoneError("Invalid phone number format");
       return;
     }
 
@@ -101,7 +78,7 @@ const AuthForm = ({ type }) => {
     const payload = {
       email,
       password,
-      ...(type === "signup" && { phone: sanitizePhoneNumber(phone), firstName, lastName }),
+      ...(type === "signup" && { phone, firstName, lastName }),
     };
 
     try {
@@ -129,7 +106,13 @@ const AuthForm = ({ type }) => {
         setError(data.message || "An error occurred. Please try again.");
       }
     } catch (err) {
-      setError(err.message || "An error occurred. Please try again.");
+      if (err.message.includes("NetworkError")) {
+        setError("Network error. Please check your internet connection and try again.");
+      } else if (err.message.includes("timeout")) {
+        setError("Request timed out. Please try again later.");
+      } else {
+        setError(err.message || "An error occurred. Please try again.");
+      }
     } finally {
       setIsLoading(false);
       setSnackbarMessage(type === "signup" ? "Account created successfully" : "Welcome back!");
@@ -143,7 +126,7 @@ const AuthForm = ({ type }) => {
         setPhone("");
       }
     }
-  }, [email, password, confirmPassword, firstName, lastName, phone, type, validateEmail, validatePhone]);
+  }, [email, password, confirmPassword, firstName, lastName, phone, type, validateEmail]);
 
   return (
     <Grid
@@ -283,8 +266,8 @@ const AuthForm = ({ type }) => {
                       type="text"
                       value={phone}
                       onChange={(e) => {
-                        setPhone(formatPhoneNumber(e.target.value));
-                        setPhoneError(validatePhone(e.target.value) ? "" : "Invalid phone number format");
+                        setPhone(e.target.value);
+                        setPhoneError("");
                       }}
                       required
                       margin="normal"
