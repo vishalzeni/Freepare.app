@@ -18,6 +18,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"; //
 import Navbar from "../components/Navbar";
 import SessionExpireDialog from "../SessionExpireCheck/SessionExpireDialog";
 import DisableCopy from "../Disable/DisableCopy";
+import DisableCapture from "../Disable/DisableCapture";
 
 const useFetchExamData = (examId) => {
   const [examData, setExamData] = useState(null);
@@ -139,18 +140,31 @@ const TestPage = () => {
   };
 
   const handleSubmit = () => {
-    const submittedTest = { answers: selectedAnswers, examId, testName };
+    const totalQuestions = correctAnswers + wrongAnswers + unattemptedAnswers;
+  
+    // Store totalScore as a fraction string (e.g., "2/5")
+    const totalScore = `${correctAnswers}/${totalQuestions}`;
+  
+    const submittedTest = { 
+      answers: selectedAnswers, 
+      examId, 
+      testName, 
+      totalScore // Now stored as a string like "2/5"
+    };
+  
     window.opener.postMessage(
       { type: "TEST_COMPLETED", submittedTest },
       window.location.origin
     );
-    setIsSubmitted(true);
+      setIsSubmitted(true);
+  
     // Scroll to the top of the page after submission
     window.scrollTo({
       top: 0,
-      behavior: "smooth", // Smooth scroll to the top
+      behavior: "smooth",
     });
   };
+  
 
   useEffect(() => {
     if (error) {
@@ -169,6 +183,7 @@ const TestPage = () => {
   return (
   <>
     <DisableCopy />
+    <DisableCapture/>
     <Navbar />
     <Box
       sx={{

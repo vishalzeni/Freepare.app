@@ -57,6 +57,7 @@ const userSchema = new mongoose.Schema(
     submittedTest: [{
       examId: { type: String, required: true },
       answers: { type: Map, of: String },
+      totalScore: { type: String, default: 0 },
       date: { type: Date, default: Date.now }
     }]
     

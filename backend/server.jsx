@@ -544,6 +544,26 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.post('/reset-password', async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  // Check if the email exists in the database
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // Hash the new password before saving
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // Update the user's password
+  user.password = hashedPassword;
+  await user.save();
+
+  res.json({ message: "Password reset successfully." });
+});
+
 // Example of a protected route
 app.get("/protected", authenticate, (req, res) => {
   res
@@ -614,12 +634,14 @@ app.post("/api/tests/markCompleted", authenticate, async (req, res) => {
           submittedTest: {
             examId: submittedTest.examId,
             answers: submittedTest.answers,
+            totalScore: submittedTest.totalScore,
             date: new Date(), // Save current timestamp
           },
         },
       },
       { new: true }
     );
+  
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }

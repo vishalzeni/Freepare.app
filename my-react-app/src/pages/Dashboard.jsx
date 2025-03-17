@@ -151,23 +151,23 @@ const Dashboard = () => {
   // Pagination handlers
   const handleChangePage = useCallback((event, newPage) => {
     setPage(newPage);
-  }, []);
+  }, [setPage]);
 
   const handleChangeRowsPerPage = useCallback((event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-  }, []);
+  }, [setRowsPerPage, setPage]);
 
   const handleMenuClose = useCallback(() => {
     setAnchorEl(null);
     setSelectedTests(null);
-  }, []);
+  }, [setAnchorEl, setSelectedTests]);
 
   // Delete user handlers
   const handleDeleteClick = useCallback((user) => {
     setUserToDelete(user);
     setDeleteDialogOpen(true);
-  }, []);
+  }, [setUserToDelete, setDeleteDialogOpen]);
 
   const handleDeleteConfirm = useCallback(() => {
     if (nameInput === userToDelete.firstName) {
@@ -195,33 +195,33 @@ const Dashboard = () => {
       setSnackbarSeverity("error");
       setOpenSnackbar(true);
     }
-  }, [users, userToDelete, nameInput]);
+  }, [users, userToDelete, nameInput, setUsers, setDeleteDialogOpen, setUserToDelete, setSnackbarMessage, setSnackbarSeverity, setOpenSnackbar]);
 
   const handleDeleteCancel = useCallback(() => {
     setDeleteDialogOpen(false);
     setUserToDelete(null);
-  }, []);
+  }, [setDeleteDialogOpen, setUserToDelete]);
 
   // Export handlers
   const handleExportClick = useCallback(() => {
     setExportDialogOpen(true);
-  }, []);
+  }, [setExportDialogOpen]);
 
   const handleExportConfirm = useCallback(() => {
     setExportDialogOpen(false);
     setSnackbarMessage("Data exported successfully.");
     setSnackbarSeverity("success");
     setOpenSnackbar(true);
-  }, []);
+  }, [setExportDialogOpen, setSnackbarMessage, setSnackbarSeverity, setOpenSnackbar]);
 
   const handleExportCancel = useCallback(() => {
     setExportDialogOpen(false);
-  }, []);
+  }, [setExportDialogOpen]);
 
   // Snackbar close handler
   const handleCloseSnackbar = useCallback(() => {
     setOpenSnackbar(false);
-  }, []);
+  }, [setOpenSnackbar]);
 
   // Loading skeletons for better UX
   const renderSkeletons = useMemo(() => {

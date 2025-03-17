@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Grid,
@@ -31,16 +31,16 @@ import { COLORS, STYLES } from "./HierarchyStyles";
 import { processData } from "./processData";
 import DisableCopy from "../../Disable/DisableCopy";
 
-const flattenEntities = (entities) => {
-  const result = {};
-  entities.forEach((entity) => {
-    result[entity.id] = entity;
-    if (entity.children) {
-      Object.assign(result, flattenEntities(entity.children)); // Merge child entities
-    }
-  });
-  return result;
-};
+// const flattenEntities = (entities) => {
+//   const result = {};
+//   entities.forEach((entity) => {
+//     result[entity.id] = entity;
+//     if (entity.children) {
+//       Object.assign(result, flattenEntities(entity.children)); // Merge child entities
+//     }
+//   });
+//   return result;
+// };
 const Hierarchy = () => {
   const [data, setData] = useState([]);
   const [path, setPath] = useState([]);
@@ -377,8 +377,6 @@ const Hierarchy = () => {
       }
 
       const data = await response.json();
-      console.log("Response data:", data);
-
       setUserData((prev) => ({ ...prev, ...data }));
       setIsDialogOpen(false);
       // Show success message
@@ -449,16 +447,12 @@ const Hierarchy = () => {
                       submittedTest,
                     }),
                   }
-                );
-                if (response.ok) {
-                  const data = await response.json();
-                  console.log("Test completion recorded:", data);
-                } else {
-                  console.error(
-                    "Failed to mark test as completed:",
-                    response.statusText
-                  );
+                ); 
+                
+                if (!response.ok) {
+                  throw new Error("Failed to mark test as completed.");
                 }
+
               } catch (error) {
                 console.error("Error during API call:", error);
               }
@@ -857,9 +851,23 @@ const Hierarchy = () => {
                                   color: COLORS.primary,
                                   fontSize: "1.2rem",
                                   marginBottom: "1rem",
+                                  textAlign: "center",
                                 }}
                               >
                                 {userData?.testName || "Test name not available"}
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  fontWeight: 500,
+                                  color: COLORS.primary,
+                                  fontSize: "1.2rem",
+                                  marginBottom: "1rem",
+                                }}
+                              >
+                               Your Total Score: {userData?.user?.totalScore || "Exam name not available"}
                               </Typography>
                               {/* Exam Questions Section */}
                               {userData?.exam?.questions?.length > 0 ? (
