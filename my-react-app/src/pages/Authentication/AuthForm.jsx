@@ -56,63 +56,67 @@ const AuthForm = ({ type }) => {
     return re.test(String(email).toLowerCase());
   }, []);
 
+  const validatePhone = useCallback((phone) => {
+    const phoneRegex = /^[0-9]{10}$/; // Adjust regex as per your region
+    return phoneRegex.test(phone);
+  }, []);
+  
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setError("");
     setEmailError("");
     setPhoneError("");
     setPasswordError("");
-
+  
     if (!validateEmail(email)) {
       setEmailError("Invalid email format");
       return;
     }
-
+  
+    if (type === "signup" && !validatePhone(phone)) {
+      setPhoneError("Invalid phone number");
+      return;
+    }
+  
     if (type === "signup" && password !== confirmPassword) {
       setPasswordError("Passwords do not match");
       return;
     }
-
+  
     setIsLoading(true);
-
+  
     const payload = {
       email,
       password,
-      ...(type === "signup" && { phone, firstName, lastName }),
+      ...(type === "signup" && { firstName, lastName, phone }),
     };
-
+    console.log("Payload being sent:", payload);
     try {
       const response = await fetch(`${BASE_URL}/${type}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Something went wrong");
       }
-
+  
       const data = await response.json();
       if (data.success) {
         localStorage.setItem("jwtToken", data.token);
-
+  
         if (window.opener) {
           window.opener.postMessage("AUTH_SUCCESS", window.location.origin);
         }
-
+  
         window.close();
       } else {
         setError(data.message || "An error occurred. Please try again.");
       }
     } catch (err) {
-      if (err.message.includes("NetworkError")) {
-        setError("Network error. Please check your internet connection and try again.");
-      } else if (err.message.includes("timeout")) {
-        setError("Request timed out. Please try again later.");
-      } else {
-        setError(err.message || "An error occurred. Please try again.");
-      }
+      setError(err.message || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
       setSnackbarMessage(type === "signup" ? "Account created successfully" : "Welcome back!");
@@ -126,8 +130,8 @@ const AuthForm = ({ type }) => {
         setPhone("");
       }
     }
-  }, [email, password, confirmPassword, firstName, lastName, phone, type, validateEmail]);
-
+  }, [email, password, confirmPassword, firstName, lastName, phone, type, validateEmail, validatePhone]);
+  
   return (
     <Grid
       container

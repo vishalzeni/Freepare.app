@@ -29,6 +29,7 @@ import AdditionalInfoDialog from "../Authentication/AdditionalInfoDialog";
 import { Snackbar, Alert } from "@mui/material";
 import { COLORS, STYLES } from "./HierarchyStyles";
 import { processData } from "./processData";
+import DisableCopy from "../../Disable/DisableCopy";
 
 const flattenEntities = (entities) => {
   const result = {};
@@ -65,7 +66,6 @@ const Hierarchy = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [institutionType, setInstitutionType] = useState(null);
 
-  const entityMap = useMemo(() => flattenEntities(data), [data]);
   const BASE_URL = "http://82.112.236.241:5000";
 
   useEffect(() => {
@@ -501,7 +501,7 @@ const Hierarchy = () => {
     };
   }, []);
 
-  const handleVisibilityClick = async (examId) => {
+  const handleVisibilityClick = async (examId, testName) => {
     setLoading(true);
     const token = localStorage.getItem("jwtToken");
     if (token) {
@@ -538,6 +538,7 @@ const Hierarchy = () => {
         const combinedData = {
           user: userData,
           exam: examData,
+          testName: testName, // Add testName to combinedData
         };
         setUserData(combinedData);
         setOpenDialog(true);
@@ -601,6 +602,8 @@ const Hierarchy = () => {
   }
 
   return (
+    <>
+    <DisableCopy/>
     <Grid
       sx={{
         maxWidth: "lg",
@@ -812,7 +815,7 @@ const Hierarchy = () => {
                           </Box>
                           <Button
                             variant="contained"
-                            onClick={() => handleVisibilityClick(paper.name)}
+                            onClick={() => handleVisibilityClick(paper.name, paper.testName)}
                             startIcon={
                               <VisibilityIcon
                                 sx={{
@@ -844,7 +847,7 @@ const Hierarchy = () => {
                             <CircularProgress size={24} />
                           ) : (
                             <>
-                              {/* Display Exam Data */}
+                              {/* Display Test Name */}
                               <Typography
                                 sx={{
                                   display: "flex",
@@ -856,10 +859,8 @@ const Hierarchy = () => {
                                   marginBottom: "1rem",
                                 }}
                               >
-                                {userData?.exam?.examName ||
-                                  "Exam name not available"}
+                                {userData?.testName || "Test name not available"}
                               </Typography>
-
                               {/* Exam Questions Section */}
                               {userData?.exam?.questions?.length > 0 ? (
                                 <Grid container spacing={2}>
@@ -1086,10 +1087,14 @@ const Hierarchy = () => {
                                                         fontStyle: "italic",
                                                         color: COLORS.darkGrey,
                                                         marginBottom: "0.5rem",
+                                                        marginLeft: "0.5rem",
                                                       }}
-                                                    >
-                                                      {question.explanation}
-                                                    </Typography>
+                                                      dangerouslySetInnerHTML={{
+                                                        __html: processData(
+                                                          question.explanation
+                                                        ),
+                                                      }}
+                                                    />
                                                   )}
                                                 </>
 
@@ -1371,18 +1376,18 @@ const Hierarchy = () => {
                                                     testCompleted[test.testName]
                                                 ).length
                                               : 0),
+                                        0
+                                      ) /
+                                        entity.children.reduce(
+                                          (total, subject) =>
+                                            total +
+                                            (subject.children
+                                              ? subject.children.length
+                                              : 0),
                                           0
-                                        ) /
-                                          entity.children.reduce(
-                                            (total, subject) =>
-                                              total +
-                                              (subject.children
-                                                ? subject.children.length
-                                                : 0),
-                                            0
-                                          )) *
-                                          100
-                                      )
+                                        )) *
+                                      100
+                                    )
                                     : 0}
                                   %
                                 </Typography>
@@ -1530,6 +1535,7 @@ const Hierarchy = () => {
         </Snackbar>
       </Box>
     </Grid>
+    </>
   );
 };
 

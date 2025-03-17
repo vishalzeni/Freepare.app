@@ -84,35 +84,35 @@ const Navbar = () => {
         }}
       >
         <Toolbar>
-        <Typography
-  variant="h6"
-  sx={{
-    flexGrow: 1,
-    display: 'flex',
-    alignItems: 'center',
-    color: theme.palette.primary.main,
-    py: 0,
-    px: 1,
-    width: { xs: '100px', sm: '140px', md: '160px', lg: '180px' }, // ✅ Large screens ke liye controlled size
-    minWidth: { xs: '100px', sm: '140px', md: '160px', lg: '180px' },
+          <Typography
+            variant="h6"
+            sx={{
+              flexGrow: 1,
+              display: "flex",
+              alignItems: "center",
+              color: theme.palette.primary.main,
+              py: { xs: 1, sm: 1.5, md: 2},
+              px: 0,
+              width: { xs: "100px", sm: "140px", md: "160px", lg: "180px" },
+              minWidth: { xs: "100px", sm: "140px", md: "160px", lg: "180px" },
 
-    '& img': {
-      transition: 'all 0.3s ease',
-    }
-  }}
->
-  <img
-    src={Logo}
-    alt="FREEPARE Logo"
-    style={{
-      height: 'auto',
-      width: '100%',
-      maxWidth: '180px', // ✅ Large screens pe ek max size limit
-      objectFit: 'contain',
-      minWidth: '100px', // ✅ Ensure chhoti screen pe minimum size maintain rahe
-    }}
-  />
-</Typography>
+              "& img": {
+                transition: "all 0.3s ease",
+              },
+            }}
+          >
+            <img
+              src={Logo}
+              alt="FREEPARE Logo"
+              style={{
+                height: "auto",
+                width: "100%",
+                maxWidth: "180px",
+                objectFit: "contain",
+                minWidth: "100px", 
+              }}
+            />
+          </Typography>
 
           {showSearch && (
             <IconButton
@@ -123,18 +123,20 @@ const Navbar = () => {
               <SearchIcon />
             </IconButton>
           )}
-          <Button
-            color="inherit"
-            component={Link}
-            to="/"
-            sx={{
-              color: theme.palette.primary.main,
-              fontWeight: "bold",
-              fontSize: "1rem",
-            }}
-          >
-            Home
-          </Button>
+          {location.pathname !== "/" && ( // Hide Home button when on "/" route
+            <Button
+              color="inherit"
+              component={Link}
+              to="/"
+              sx={{
+                color: theme.palette.primary.main,
+                fontWeight: "bold",
+                fontSize: "1rem",
+              }}
+            >
+              Home
+            </Button>
+          )}
 
           {/* Conditionally render Avatar or Auth Button based on token status */}
           {location.pathname !== "/admin" && (
@@ -153,22 +155,25 @@ const Navbar = () => {
                 {isTokenExpired ? (
                   <AccountCircle sx={{ fontSize: 30, marginRight: 1 }} />
                 ) : userImage ? (
-                  <Avatar src={userImage} alt="User Avatar" sx={{ width: 30, height: 30, marginRight: 1 }} />
+                  <Avatar
+                    src={userImage}
+                    alt="User Avatar"
+                    sx={{ width: 30, height: 30, marginRight: 1 }}
+                  />
                 ) : (
                   <AccountCircle sx={{ fontSize: 30, marginRight: 1 }} />
                 )}
                 <Typography
-                  variant="h6"
+                  variant="h5"
                   sx={{
                     color: theme.palette.primary.main,
                     fontWeight: "bold",
                   }}
                 >
-                  {userName || ""} {/* Default name if no userName available */}
+                  {userName || ""}
                 </Typography>
               </Button>
 
-              {/* Conditionally render login/signup button based on token expiry */}
               {isTokenExpired && (
                 <Button
                   color="inherit"

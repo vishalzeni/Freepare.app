@@ -457,15 +457,19 @@ app.get("/api/exams/:id", async (req, res) => {
 });
 
 app.post("/signup", async (req, res) => {
-  const { email, password, firstName, lastName } = req.body;
+  const { email, password, firstName, lastName, phone } = req.body;
 
   try {
+    // Basic phone number validation (adjust regex as needed)
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phone || !phoneRegex.test(phone)) {
+      return res.status(400).json({ success: false, message: "Invalid phone number" });
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email already in use" });
+      return res.status(400).json({ success: false, message: "Email already in use" });
     }
 
     // Hash the password
@@ -477,6 +481,7 @@ app.post("/signup", async (req, res) => {
       password: hashedPassword,
       firstName,
       lastName,
+      phone, // Ensure phone is stored
     });
 
     // Save the user to the database
@@ -484,21 +489,22 @@ app.post("/signup", async (req, res) => {
 
     // Generate a JWT token
     const token = jwt.sign(
-      { userId: savedUser._id, email: savedUser.email }, // Payload (user's info)
-      JWT_SECRET, // Secret key to sign the JWT
-      { expiresIn: "7d" } // Expiry time for the token (7d)
+      { userId: savedUser._id, email: savedUser.email },
+      JWT_SECRET,
+      { expiresIn: "7d" }
     );
 
-    // Respond with success and the JWT token
+    // Respond with success and token
     res.status(201).json({
       success: true,
       user: savedUser,
-      token, // Send the JWT token in the response
+      token,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error creating user" });
   }
 });
+
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
