@@ -142,6 +142,7 @@ const Hierarchy = () => {
   const navigateTo = (entity) => {
     setPath((prevPath) => [...prevPath, entity]);
     setCurrentLevel(entity.children);
+    window.scrollTo(0, 0); // Scroll to the top
   };
 
   const currentEntity = path.length > 0 ? path[path.length - 1] : null;

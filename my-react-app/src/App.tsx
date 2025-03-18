@@ -8,12 +8,12 @@ import LoginPage from "./pages/Authentication/LoginPage";
 
 // Import the SessionProvider
 import { SessionProvider } from './SessionExpireCheck/SessionProvider';
+import ErrorPage from "./pages/ErrorPage";
 
 const App = () => {
   return (
     <>
       <CssBaseline />
-      {/* Wrap your entire app with the SessionProvider */}
       <SessionProvider>
         <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
@@ -22,6 +22,7 @@ const App = () => {
             <Route path="/admin" element={<Admin />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="*" element={<ErrorPage/>} />
           </Routes>
         </Router>
       </SessionProvider>
