@@ -29,7 +29,7 @@ const JoinUs = () => {
             </Typography>
             <Typography variant="body1" paragraph sx={{ color: "#555", mb: 3 }}>
               At <b>FREEPARE</b>, we are dedicated to empowering students with
-              high-quality exam preparation resources – absolutely free of cost.
+              high-quality exam preparation resources – absolutely free of cost
             </Typography>
 
             {/* Features with Sparkling Star Icons ✨ */}
