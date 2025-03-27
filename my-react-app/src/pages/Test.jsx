@@ -28,7 +28,7 @@ const useFetchExamData = (examId) => {
   useEffect(() => {
     if (examId) {
       setLoading(true);
-      fetch(`https://82.112.236.241:5000/api/exams/${examId}`)
+      fetch(`https://api.freepare.com/api/exams/${examId}`)
         .then((response) => {
           if (!response.ok) {
             throw new Error(`Server Error: ${response.statusText}`);

@@ -26,7 +26,7 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import AvatarIcon from "@mui/icons-material/AccountCircle";
 import AdditionalInfoDialog from "./AdditionalInfoDialog";
 
-const BASE_URL = "https://82.112.236.241:5000";
+const BASE_URL = "https://api.freepare.com";
 
 const User = ({ open, onClose, onUpdateImage }) => {
   const [userData, setUserData] = useState(null);

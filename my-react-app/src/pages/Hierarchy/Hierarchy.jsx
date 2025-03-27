@@ -66,7 +66,7 @@ const Hierarchy = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [institutionType, setInstitutionType] = useState(null);
 
-  const BASE_URL = "http://82.112.236.241:5000";
+  const BASE_URL = "https://api.freepare.com";
 
   useEffect(() => {
     const fetchData = async (retries = 3) => {

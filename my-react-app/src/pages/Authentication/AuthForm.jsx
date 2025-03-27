@@ -19,7 +19,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import img from "../../Assets/Freepare_LogIn.png";
 import ForgotPasswordDialog from "./ForgetPasswordDialog";
 
-const BASE_URL = "https://82.112.236.241:5000";
+const BASE_URL = "https://api.freepare.com";
 
 const AuthForm = ({ type }) => {
   const [email, setEmail] = useState("");

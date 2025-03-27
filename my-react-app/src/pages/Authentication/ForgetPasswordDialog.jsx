@@ -11,7 +11,7 @@ import {
   Alert,
 } from "@mui/material";
 
-const BASE_URL = "https://82.112.236.241:5000"; // Define BASE_URL here
+const BASE_URL = "https://api.freepare.com"; // Define BASE_URL here
 
 const ForgotPasswordDialog = ({ open, onClose }) => {
   const [email, setEmail] = useState("");
