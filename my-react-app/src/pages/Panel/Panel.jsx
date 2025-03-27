@@ -39,7 +39,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import PropTypes from "prop-types";
 
-const BASE_URL = "http://82.112.236.241:5000/api";
+const BASE_URL = "https://api.freepare.com/api";
 
 // A separate component for sortable items using dnd kit.
 const SortableItem = ({ entity, renderEntity, depth = 0 }) => {
