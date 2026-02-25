@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  CircularProgress,
-  Snackbar,
-  Alert,
-} from "@mui/material";
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+import Modal from "../../components/ui/Modal";
+import Toast from "../../components/ui/Toast";
 
-const BASE_URL = "https://api.freepare.com"; // Define BASE_URL here
+const API_URL = import.meta.env.VITE_API_URL || "https://api.freepare.com";
+const BASE_URL = `${API_URL}`;
+
+const inputClass =
+  "mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-[#066C98] focus:ring-2 focus:ring-sky-100";
 
 const ForgotPasswordDialog = ({ open, onClose }) => {
   const [email, setEmail] = useState("");
@@ -24,46 +20,29 @@ const ForgotPasswordDialog = ({ open, onClose }) => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (open) {
-      setEmail("");
-      setNewPassword("");
-      setConfirmNewPassword("");
-      setError("");
-      setSnackbarOpen(false);
-    }
+    if (!open) return;
+    setEmail("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setError("");
+    setSnackbarOpen(false);
   }, [open]);
 
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
-  };
+  const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).toLowerCase());
 
-  const handleSubmit = async () => {
-    if (!email) {
-      setError("Please enter your email address.");
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      setError("Invalid email format.");
-      return;
-    }
-
-    if (!newPassword || !confirmNewPassword) {
-      setError("Please enter and confirm your new password.");
-      return;
-    }
-
-    if (newPassword !== confirmNewPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!email) return setError("Please enter your email address.");
+    if (!validateEmail(email)) return setError("Invalid email format.");
+    if (!newPassword || !confirmNewPassword)
+      return setError("Please enter and confirm your new password.");
+    if (newPassword !== confirmNewPassword) return setError("Passwords do not match.");
 
     setIsLoading(true);
     setError("");
 
     try {
-      const response = await fetch(`${BASE_URL}/reset-password`, { // Use BASE_URL here
+      const response = await fetch(`${BASE_URL}/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, newPassword }),
@@ -80,7 +59,9 @@ const ForgotPasswordDialog = ({ open, onClose }) => {
       setSnackbarOpen(true);
       onClose();
     } catch (err) {
-      setError(err.message || "An error occurred. Please try again.");
+      const msg = err.message || "An error occurred. Please try again.";
+      setError(msg);
+      setSnackbarMessage(msg);
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     } finally {
@@ -90,75 +71,77 @@ const ForgotPasswordDialog = ({ open, onClose }) => {
 
   return (
     <>
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Forgot Password</DialogTitle>
-        <DialogContent>
-          <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
-            <TextField
-              fullWidth
-              label="Email Address"
+      <Modal
+        open={open}
+        onClose={onClose}
+        title="Reset Password"
+        subtitle="Enter your registered email and set a new password."
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isLoading}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="reset-password-form"
+              disabled={isLoading}
+              className="inline-flex items-center gap-2 rounded-lg bg-[#066C98] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#045472] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isLoading && <Loader2 size={16} className="animate-spin" />}
+              {isLoading ? "Resetting..." : "Reset Password"}
+            </button>
+          </>
+        }
+      >
+        <form id="reset-password-form" onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Email Address</label>
+            <input
+              className={inputClass}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              margin="normal"
-              variant="outlined"
-              error={!!error && error.includes("email")}
-              helperText={error.includes("email") ? error : ""}
-              aria-label="Email Address"
             />
-            <TextField
-              fullWidth
-              label="New Password"
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">New Password</label>
+            <input
+              className={inputClass}
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              margin="normal"
-              variant="outlined"
-              error={!!error && error.includes("password")}
-              helperText={error.includes("password") ? error : ""}
-              aria-label="New Password"
             />
-            <TextField
-              fullWidth
-              label="Confirm New Password"
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Confirm New Password</label>
+            <input
+              className={inputClass}
               type="password"
               value={confirmNewPassword}
               onChange={(e) => setConfirmNewPassword(e.target.value)}
               required
-              margin="normal"
-              variant="outlined"
-              error={!!error && error.includes("password")}
-              helperText={error.includes("password") ? error : ""}
-              aria-label="Confirm New Password"
             />
-            <DialogActions>
-              <Button onClick={onClose} color="primary" disabled={isLoading}>
-                Cancel
-              </Button>
-              <Button type="submit" color="primary" disabled={isLoading}>
-                {isLoading ? <CircularProgress size={24} /> : "Reset Password"}
-              </Button>
-            </DialogActions>
-          </form>
-        </DialogContent>
-      </Dialog>
-      <Snackbar
+          </div>
+          {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
+        </form>
+      </Modal>
+
+      <Toast
         open={snackbarOpen}
-        autoHideDuration={6000}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
         onClose={() => setSnackbarOpen(false)}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
-          sx={{ width: "100%" }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      />
     </>
   );
 };
 
 export default ForgotPasswordDialog;
+

@@ -1,51 +1,40 @@
-import { Box, Button, Typography, Container } from "@mui/material";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import { AlertTriangle, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Logo from "../Assets/Freepare_Logo.png"; // Change this to your logo path
+import Logo from "../Assets/Freepare_Logo.png";
 
 const ErrorPage = () => {
   const navigate = useNavigate();
 
   return (
-    <Container 
-      maxWidth="md" 
-      sx={{ 
-        textAlign: "center", 
-        height: "100vh", 
-        display: "flex", 
-        flexDirection: "column", 
-        justifyContent: "center", 
-        alignItems: "center", 
-        overflow: "hidden"
-      }}
-    >
-      {/* Logo at the Top */}
-      <Box sx={{ mb: 3, width: "60%" }}>
-        <img 
-          src={Logo} 
-          alt="Logo"
-          style={{ width: "100%", height: "auto" }}
+    <section className="flex min-h-screen items-center justify-center bg-gradient-to-b from-white to-sky-100 px-4 py-10">
+      <div className="w-full max-w-2xl rounded-3xl border border-sky-100 bg-white p-6 text-center shadow-xl sm:p-10">
+        <img
+          src={Logo}
+          alt="FREEPARE"
+          className="mx-auto mb-5 w-full max-w-xs object-contain"
         />
-      </Box>
 
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <ErrorOutlineIcon sx={{ fontSize: 100, color: "error.main" }} />
-        <Typography variant="h3" sx={{ mt: 2, fontWeight: "bold" }}>
+        <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-red-50 text-red-500">
+          <AlertTriangle size={42} />
+        </div>
+
+        <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
           Oops! Something went wrong.
-        </Typography>
-        <Typography variant="body1" sx={{ mt: 1, color: "text.secondary" }}>
-          The page you’re looking for doesn’t exist or an error occurred.
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          sx={{ mt: 3 }}
+        </h1>
+        <p className="mx-auto mt-2 max-w-xl text-sm text-slate-600 sm:text-base">
+          The page you are looking for does not exist, or an unexpected error occurred.
+        </p>
+
+        <button
+          type="button"
           onClick={() => navigate("/")}
+          className="mx-auto mt-6 inline-flex items-center gap-2 rounded-xl bg-[#066C98] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#045472]"
         >
+          <Home size={16} />
           Go Back Home
-        </Button>
-      </Box>
-    </Container>
+        </button>
+      </div>
+    </section>
   );
 };
 

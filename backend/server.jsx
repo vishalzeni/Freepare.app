@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -15,24 +16,37 @@ const app = express();
 // Increase the limit to 10MB (or any suitable value)
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
-const port = 5000;
+const port = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(
   cors({
-    origin: "*", // Replace with your frontend URL
+    // Allow specific frontend origins (use FRONTEND_URL in production)
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        process.env.FRONTEND_URL,
+        "http://localhost:3001",
+        "http://localhost:3002",
+        "http://localhost:3003",
+      ].filter(Boolean);
+      // Allow requests with no origin (e.g., curl, same-origin)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        return callback(null, true);
+      }
+      return callback(new Error("CORS policy: Origin not allowed"));
+    },
     methods: "GET, POST, PUT, DELETE",
     allowedHeaders: "Content-Type, Authorization",
+    credentials: true, // <-- allow cookies/credentials
   })
 );
 
-const JWT_SECRET = "your_jwt_secret_key"; // Store this in an env variable for security
+const JWT_SECRET = process.env.JWT_SECRET || "change_this_jwt_secret";
 
 // MongoDB Connection
 mongoose
-  .connect(
-    "mongodb+srv://contentsimplified4u:content%40123@cluster0.aad41.mongodb.net/hierarchy"
-  )
+  .connect(process.env.MONGO_URI || "mongodb://localhost:27017/hierarchy")
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("MongoDB Connection Error: ", err));
 

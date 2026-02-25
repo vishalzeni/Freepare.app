@@ -1,55 +1,21 @@
-import React from "react";
-import { Box, Container, Grid, Typography, Divider } from "@mui/material";
-
 const Footer = () => {
   return (
-    <Box
-      sx={{
-        background: "linear-gradient(to top,rgb(255, 255, 255), #e3f2fd)",
-        padding: { xs: 1, sm: 2, md: 2 },
-        color: "#555",
-      }}
-    >
-      {/* Divider in the middle with some cut from left and right */}
-      <Box sx={{ width: "90%", mx: "auto", mb: 4, mt: 2 }}>
-        <Divider sx={{ height: "2px", backgroundColor: "#066C98" }} />
-      </Box>
+    <footer className="w-full bg-gradient-to-b from-sky-50 to-white px-4 pb-8 pt-4 sm:px-6">
+      <div className="mx-auto w-full max-w-6xl border-t-2 border-[#066C98] pt-6">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-sky-100 bg-white p-6 text-center shadow-sm">
+          <h3 className="text-xl font-semibold text-[#066C98] sm:text-2xl">About Us</h3>
+          <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+            FREEPARE provides high-quality exam preparation resources completely free of charge,
+            helping students prepare with confidence through practical mock tests and structured
+            learning.
+          </p>
+        </div>
 
-      <Container maxWidth="lg">
-        <Grid container justifyContent="center">
-          {/* Remaining Section: About Us */}
-          <Grid item xs={12} sm={8} md={6}>
-            <Typography
-              variant="h3"
-              sx={{
-                mb: 2,
-                textAlign: "center",
-                background: `linear-gradient(90deg,rgb(240, 82, 161) 30%, #FFD700 100%)`,          
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontWeight: 500,                fontSize: "1.5rem",
-              }}
-            >
-              About Us
-            </Typography>
-            <Typography variant="body1" sx={{ textAlign: "center" }}>
-              FREEPARE provides high-quality exam preparation resources
-              completely free of charge, helping students ace their exams with
-              ease. We aim to make learning accessible and efficient for
-              everyone by offering expertly curated study materials and practice
-              tests.
-            </Typography>
-          </Grid>
-        </Grid>
-
-        {/* Footer Bottom */}
-        <Box sx={{ mt: 4, textAlign: "center", color: "#777", fontSize: "0.9rem", fontWeight: 500 }}>
-          <Typography variant="body2" sx={{ fontSize: "0.9rem" }}>
-            © {new Date().getFullYear()} FREEPARE. All Rights Reserved.
-          </Typography>
-        </Box>
-      </Container>
-    </Box>
+        <p className="mt-6 text-center text-xs font-medium text-slate-500 sm:text-sm">
+          Copyright {new Date().getFullYear()} FREEPARE. All rights reserved.
+        </p>
+      </div>
+    </footer>
   );
 };
 

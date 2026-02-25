@@ -1,214 +1,116 @@
 import { useEffect, useState } from "react";
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  IconButton,
-  useTheme,
-  Avatar,
-  Box,
-} from "@mui/material";
+import { Home, Search, UserCircle2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import SearchIcon from "@mui/icons-material/Search";
-import AccountCircle from "@mui/icons-material/AccountCircle";
-import User from "../pages/Authentication/User"; // Import the User dialog component
 import jwtDecode from "jwt-decode";
-import Logo from "../Assets/Freepare_Logo.png"; // Import the logo image
+import User from "../pages/Authentication/User";
+import Logo from "../Assets/Freepare_Logo.png";
 
 const Navbar = () => {
   const [showSearch, setShowSearch] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false); // State for dialog visibility
-  const [isTokenExpired, setIsTokenExpired] = useState(true); // State to manage token expiration
-  const [userImage, setUserImage] = useState(null); // State for user image URL
-  const [userName, setUserName] = useState(null); // State for user details
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isTokenExpired, setIsTokenExpired] = useState(true);
+  const [userImage, setUserImage] = useState(null);
+  const [userName, setUserName] = useState(null);
   const location = useLocation();
-  const theme = useTheme();
 
   useEffect(() => {
     setShowSearch(location.pathname === "/");
-
-    // JWT token check
     const token = localStorage.getItem("jwtToken");
-    if (token) {
-      try {
-        const decodedToken = jwtDecode(token);
-        const expiryTime = decodedToken.exp * 1000; // Convert to milliseconds
-        const currentTime = Date.now();
-
-        if (expiryTime > currentTime) {
-          setIsTokenExpired(false); // Token is valid
-        } else {
-          setIsTokenExpired(true); // Token has expired
-        }
-      } catch (error) {
-        console.error("Invalid JWT token:", error);
-        setIsTokenExpired(true); // Token is invalid or expired
-      }
-    } else {
-      setIsTokenExpired(true); // No token found
+    if (!token) {
+      setIsTokenExpired(true);
+      return;
+    }
+    try {
+      const decodedToken = jwtDecode(token);
+      const expiryTime = decodedToken.exp * 1000;
+      setIsTokenExpired(expiryTime <= Date.now());
+    } catch (error) {
+      console.error("Invalid JWT token:", error);
+      setIsTokenExpired(true);
     }
   }, [location]);
 
   const toggleSearch = () => {
-    const event = new CustomEvent("toggleSearch");
-    window.dispatchEvent(event);
-  };
-
-  const handleDialogOpen = () => setDialogOpen(true);
-  const handleDialogClose = () => setDialogOpen(false);
-
-  // Callback to receive the image URL from User component
-  const handleUserImageUpdate = (imageUrl, firstName) => {
-    setUserImage(imageUrl); // Dynamically set the user image
-    setUserName(firstName); // Dynamically set the user name
+    window.dispatchEvent(new CustomEvent("toggleSearch"));
   };
 
   const handleAuthButtonClick = () => {
-    // Redirect to appropriate page based on token expiry
-    if (isTokenExpired) {
-      window.open("/login", "_blank"); // Open login page in a new tab
-    }
+    if (isTokenExpired) window.open("/login", "_blank");
   };
 
   return (
     <>
-      <AppBar
-        position="sticky"
-        sx={{
-          top: 0,
-          backgroundColor: theme.palette.background.default,
-          color: theme.palette.text.primary,
-          boxShadow:
-            "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)", // Modern shadow
-        }}
-      >
-        <Toolbar>
-          <Typography
-            variant="h6"
-            sx={{
-              flexGrow: 1,
-              display: "flex",
-              alignItems: "center",
-              color: theme.palette.primary.main,
-              py: { xs: 1, sm: 1.5, md: 2},
-              px: 0,
-              width: { xs: "100px", sm: "140px", md: "160px", lg: "180px" },
-              minWidth: { xs: "100px", sm: "140px", md: "160px", lg: "180px" },
-
-              "& img": {
-                transition: "all 0.3s ease",
-              },
-            }}
-          >
-            <img
-              src={Logo}
-              alt="FREEPARE Logo"
-              style={{
-                height: "auto",
-                width: "100%",
-                maxWidth: "180px",
-                objectFit: "contain",
-                minWidth: "100px", 
-              }}
-            />
-          </Typography>
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-sm">
+        <div className="mx-auto flex w-full max-w-7xl items-center gap-2 px-3 py-2 sm:px-4">
+          <Link to="/" className="min-w-[110px] max-w-[190px] flex-1">
+            <img src={Logo} alt="FREEPARE Logo" className="h-auto w-full object-contain" />
+          </Link>
 
           {showSearch && (
-            <IconButton
-              color="inherit"
+            <button
+              type="button"
               onClick={toggleSearch}
-              sx={{ color: theme.palette.primary.main }}
+              className="rounded-lg p-2 text-[#066C98] transition hover:bg-slate-100"
+              aria-label="Toggle search"
             >
-              <SearchIcon />
-            </IconButton>
-          )}
-          {location.pathname !== "/" && ( // Hide Home button when on "/" route
-            <Button
-              color="inherit"
-              component={Link}
-              to="/"
-              sx={{
-                color: theme.palette.primary.main,
-                fontWeight: "bold",
-                fontSize: "1rem",
-              }}
-            >
-              Home
-            </Button>
+              <Search size={20} />
+            </button>
           )}
 
-          {/* Conditionally render Avatar or Auth Button based on token status */}
+          {location.pathname !== "/" && (
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-[#066C98] transition hover:bg-slate-100"
+            >
+              <Home size={16} />
+              Home
+            </Link>
+          )}
+
           {location.pathname !== "/admin" && (
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Button
-                color="inherit"
-                onClick={handleDialogOpen} // Open dialog on click
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  color: theme.palette.primary.main,
-                  fontWeight: "bold",
-                  fontSize: "1rem",
-                }}
+            <div className="ml-1 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setDialogOpen(true)}
+                className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-[#066C98] transition hover:bg-slate-100"
               >
-                {isTokenExpired ? (
-                  <AccountCircle sx={{ fontSize: 30, marginRight: 1 }} />
-                ) : userImage ? (
-                  <Avatar
+                {userImage && !isTokenExpired ? (
+                  <img
                     src={userImage}
                     alt="User Avatar"
-                    sx={{ width: 30, height: 30, marginRight: 1 }}
+                    className="h-8 w-8 rounded-full object-cover ring-2 ring-sky-100"
                   />
                 ) : (
-                  <AccountCircle sx={{ fontSize: 30, marginRight: 1 }} />
+                  <UserCircle2 size={30} />
                 )}
-                <Typography
-                  variant="h5"
-                  sx={{
-                    color: theme.palette.primary.main,
-                    fontWeight: "bold",
-                  }}
-                >
-                  {userName || ""}
-                </Typography>
-              </Button>
+                <span className="hidden text-sm font-semibold sm:inline">{userName || ""}</span>
+              </button>
 
               {isTokenExpired && (
-                <Button
-                  color="inherit"
+                <button
+                  type="button"
                   onClick={handleAuthButtonClick}
-                  sx={{
-                    color: "#fff",
-                    background: theme.palette.primary.main,
-                    padding: "6px 16px",
-                    transition: "background-color 0.3s ease", // Smooth transition for hover
-                    "&:hover": {
-                      background: theme.palette.primary.dark, // Darker shade on hover
-                    },
-                    // Responsive styles
-                    [theme.breakpoints.down("sm")]: {
-                      padding: "4px 10px", // Adjust padding on small screens
-                      fontSize: "0.9rem", // Reduce font size on smaller screens
-                    },
-                  }}
+                  className="rounded-lg bg-[#066C98] px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-[#045472]"
                 >
                   Login
-                </Button>
+                </button>
               )}
-            </Box>
+            </div>
           )}
-        </Toolbar>
-      </AppBar>
+        </div>
+      </header>
 
-      {/* User Dialog */}
       <User
         open={dialogOpen}
-        onClose={handleDialogClose}
-        onUpdateImage={handleUserImageUpdate} // Pass callback to User component
+        onClose={() => setDialogOpen(false)}
+        onUpdateImage={(imageUrl, firstName) => {
+          setUserImage(imageUrl);
+          setUserName(firstName);
+        }}
       />
     </>
   );
 };
 
 export default Navbar;
+

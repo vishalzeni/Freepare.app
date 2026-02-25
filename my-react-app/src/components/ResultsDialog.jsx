@@ -1,18 +1,5 @@
-import React from "react";
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Button,
-  Typography,
-  Box,
-  Divider,
-} from "@mui/material";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import HighlightOffIcon from "@mui/icons-material/HighlightOff";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { green, red, orange } from "@mui/material/colors";
+import { CircleCheckBig, CircleHelp, CircleX, Trophy } from "lucide-react";
+import Modal from "./ui/Modal";
 
 const generatePieSlice = (radius, startAngle, endAngle) => {
   const startX = radius + radius * Math.cos((startAngle * Math.PI) / 180);
@@ -25,6 +12,9 @@ const generatePieSlice = (radius, startAngle, endAngle) => {
   } 1 ${endX} ${endY} Z`;
 };
 
+const statCard =
+  "flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold";
+
 const ResultsDialog = ({
   open,
   onClose,
@@ -36,20 +26,14 @@ const ResultsDialog = ({
 }) => {
   const correctPercentage = (correctAnswers / totalQuestions) * 100 || 0;
   const wrongPercentage = (wrongAnswers / totalQuestions) * 100 || 0;
-  const unattemptedPercentage =
-    (unattemptedAnswers / totalQuestions) * 100 || 0;
+  const unattemptedPercentage = (unattemptedAnswers / totalQuestions) * 100 || 0;
 
   const correctAngle = (correctPercentage / 100) * 360;
   const wrongAngle = (wrongPercentage / 100) * 360;
-  const unattemptedAngle = (unattemptedPercentage / 100) * 360;
 
   const correctSlice = generatePieSlice(100, 0, correctAngle);
   const wrongSlice = generatePieSlice(100, correctAngle, correctAngle + wrongAngle);
-  const unattemptedSlice = generatePieSlice(
-    100,
-    correctAngle + wrongAngle,
-    360
-  );
+  const unattemptedSlice = generatePieSlice(100, correctAngle + wrongAngle, 360);
 
   const handleClose = () => {
     onClose();
@@ -62,246 +46,71 @@ const ResultsDialog = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle
-  align="left"
-  sx={{
-    fontSize: "1.5rem",
-    fontWeight: "bold",
-    color: "primary.main",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    paddingLeft: 3,
-    "@media (max-width: 600px)": { // Apply styles for screens less than 600px wide
-      fontSize: "1.2rem", // Smaller font size for mobile
-      paddingLeft: 2, // Adjust padding for mobile
-    },
-  }}
->
-  Test Result
-</DialogTitle>
-
-      
-      <DialogContent>
-      <Divider sx={{ height: 1, backgroundColor: "primary.main"
-}} />
-        <Box sx={{ padding: 2 }}>
-  <Box sx={{ display: "flex", justifyContent: "space-between","@media (max-width: 600px)": { // Mobile view adjustments
-    flexDirection: "column", // Stack items vertically on mobile
-    alignItems: "center", // Center align items on mobile
-    gap: 1, // Add gap between items
-        }, }}>
-    <Typography
-      variant="h3"
-      color="primary"
-      sx={{
-        paddingLeft: 3,
-        textOverflow: "ellipsis",
-        overflow: "hidden",
-        whiteSpace: "nowrap",
-        "@media (max-width: 600px)": { // Mobile view adjustments
-          fontSize: "1.3rem", // Decrease font size on mobile
-          paddingLeft: 1, // Adjust padding
-          textAlign: "center", // Center align text on mobile
-        },
-      }}
-    >
-      {testName}
-    </Typography>
-    <Typography
-      variant="h4"
-      color="primary"
-      sx={{
-        paddingRight: 3,
-        "@media (max-width: 600px)": { // Mobile view adjustments
-          fontSize: "1.2rem", // Decrease font size on mobile
-          paddingRight: 1, // Adjust padding
-        },
-      }}
-    >
-      Total Questions: {totalQuestions}
-    </Typography>
-  </Box>
-  <Divider
-    sx={{
-      marginTop: 2,
-      marginBottom: 2,
-      height: 1,
-      backgroundColor: "primary.main",
-    }}
-  />
-  <Box
-    sx={{
-      display: "flex",
-      justifyContent: "space-evenly",
-      alignItems: "center",
-      marginBottom: 2,
-      gap: 1,
-      "@media (max-width: 600px)": {
-        flexDirection: "column", // Stack items vertically on mobile
-        alignItems: "center", // Center align icons and text
-      },
-    }}
-  >
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        flexDirection: "row",
-        justifyContent: "center",
-      }}
-    >
-      <CheckCircleOutlineIcon color="success" sx={{ fontSize: 35 }} />
-      <Typography variant="h5" color="success.main">
-        Correct: {correctAnswers} ({correctPercentage.toFixed(1)}%)
-      </Typography>
-    </Box>
-
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        flexDirection: "row",
-        justifyContent: "center",
-      }}
-    >
-      <HighlightOffIcon color="error" sx={{ fontSize: 35 }} />
-      <Typography variant="h5" color="error.main">
-        Wrong: {wrongAnswers} ({wrongPercentage.toFixed(1)}%)
-      </Typography>
-    </Box>
-
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        flexDirection: "row",
-        justifyContent: "center",
-      }}
-    >
-      <HelpOutlineIcon color="warning" sx={{ fontSize: 35 }} />
-      <Typography variant="h5" color="warning.main">
-        Unattempted: {unattemptedAnswers} (
-        {unattemptedPercentage.toFixed(1)}%)
-      </Typography>
-    </Box>
-  </Box>
-
-  <Box
-    sx={{
-      marginTop: 3,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      "@media (max-width: 600px)": {
-        flexDirection: "column-reverse", // Stack items vertically on mobile
-        alignItems: "center", // Center align the pie chart and score
-        gap: 4, // Add gap between items
-      },
-    }}
-  >
-    <svg width="200" height="200" viewBox="0 0 200 200">
-      <circle
-        cx="100"
-        cy="100"
-        r="90"
-        fill="white"
-        stroke="lightgray"
-        strokeWidth="1"
-      />
-      <path d={correctSlice} fill={green[500]} />
-      <path d={wrongSlice} fill={red[500]} />
-      <path d={unattemptedSlice} fill={orange[500]} />
-      <circle
-        cx="100"
-        cy="100"
-        r="50"
-        fill="white"
-        stroke="lightgray"
-        strokeWidth="1"
-      />
-      <circle
-        cx="100"
-        cy="100"
-        r="90"
-        fill="none"
-        stroke="rgba(0, 0, 0, 0.1)"
-        strokeWidth="10"
-      />
-    </svg>
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        marginLeft: 3,
-        backgroundColor: "#fff",
-        borderRadius: 2,
-        padding: 5,
-        boxShadow: 2,
-        textAlign: "center",
-        "@media (max-width: 600px)": {
-          marginLeft: 0, // Remove margin on mobile
-          padding: 3, // Reduce padding on mobile
-          width: "80%", // Make it more responsive
-        },
-      }}
-    >
-      <Typography
-        variant="h4"
-        color="primary"
-        sx={{
-          fontWeight: "600",
-          textTransform: "uppercase",
-          marginBottom: 1,
-        }}
-      >
-        Total Score
-      </Typography>
-      <Typography
-        variant="h3"
-        fontWeight="bold"
-        fontSize={40}
-        sx={{
-          color: correctAnswers / totalQuestions >= 0.8 ? "green" : "red",
-          letterSpacing: 2,
-        }}
-      >
-        {correctAnswers}/{totalQuestions}
-      </Typography>
-      <Typography
-        variant="body2"
-        sx={{
-          color: "text.secondary",
-          marginTop: 1,
-          fontStyle: "italic",
-          fontSize: 16,
-        }}
-      >
-        ({((correctAnswers / totalQuestions) * 100).toFixed(1)}%)
-      </Typography>
-    </Box>
-  </Box>
-</Box>
-
-      </DialogContent>
-      <DialogActions sx={{ padding: 2 }}>
-        <Button
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Test Result"
+      subtitle={`${testName || "Freepare Test"} · Total Questions: ${totalQuestions}`}
+      size="lg"
+      footer={
+        <button
+          type="button"
           onClick={handleClose}
-          color="primary"
-          variant="contained"
-          sx={{
-            "&:hover": { backgroundColor: "primary.dark" },
-            width: "100%",
-            padding: "12px 16px",
-            fontWeight: "bold",
-          }}
+          className="w-full rounded-lg bg-[#066C98] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#045472]"
         >
           Close
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </button>
+      }
+    >
+      <div className="space-y-4">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <div className={`${statCard} text-emerald-700`}>
+            <CircleCheckBig size={18} />
+            Correct: {correctAnswers} ({correctPercentage.toFixed(1)}%)
+          </div>
+          <div className={`${statCard} text-rose-700`}>
+            <CircleX size={18} />
+            Wrong: {wrongAnswers} ({wrongPercentage.toFixed(1)}%)
+          </div>
+          <div className={`${statCard} text-amber-700`}>
+            <CircleHelp size={18} />
+            Unattempted: {unattemptedAnswers} ({unattemptedPercentage.toFixed(1)}%)
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-3">
+            <svg width="220" height="220" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="90" fill="white" stroke="lightgray" strokeWidth="1" />
+              <path d={correctSlice} fill="#22c55e" />
+              <path d={wrongSlice} fill="#ef4444" />
+              <path d={unattemptedSlice} fill="#f59e0b" />
+              <circle cx="100" cy="100" r="50" fill="white" stroke="lightgray" strokeWidth="1" />
+              <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(0, 0, 0, 0.1)" strokeWidth="10" />
+            </svg>
+          </div>
+
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center">
+            <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-sky-100 text-[#066C98]">
+              <Trophy size={20} />
+            </div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">Total Score</p>
+            <p
+              className={`mt-2 text-4xl font-extrabold ${
+                correctAnswers / totalQuestions >= 0.8 ? "text-emerald-600" : "text-rose-600"
+              }`}
+            >
+              {correctAnswers}/{totalQuestions}
+            </p>
+            <p className="mt-1 text-sm text-slate-500">
+              ({((correctAnswers / totalQuestions) * 100).toFixed(1)}%)
+            </p>
+          </div>
+        </div>
+      </div>
+    </Modal>
   );
 };
 
 export default ResultsDialog;
+

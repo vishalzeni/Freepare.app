@@ -1,44 +1,34 @@
-import React from "react";
 import Hierarchy from "./Hierarchy/Hierarchy";
-import { Box } from "@mui/material";
 import Navbar from "../components/Navbar";
 import SessionExpireDialog from "../SessionExpireCheck/SessionExpireDialog";
 import JoinUs from "../components/JoinUs";
 import Footer from "../components/Footer";
 import WhyFreepare from "../components/WhyFreepare";
+import FAQ from "../components/FAQ";
+
 const Home = () => {
   return (
-    <Box sx={{ display: "flex" }}>
-      <Box
-        sx={{
-          flexGrow: 1,
-          width: "100%",
-          background: "linear-gradient(to bottom,rgb(255, 255, 255), #e3f2fd)",
-        }}
-      >
-        <Box
-          sx={{
-            background: "linear-gradient(to bottom,rgb(251, 253, 255) 0%, #e3f2fd 100%)",
-          }}
-        >
-          <Navbar />
-          <main aria-label="Main content">
-            <Hierarchy />
-          </main>
-          <section aria-label="Signup">
-            <JoinUs />
-          </section>
-          <section aria-label="Why Freepare">
+    <div className="min-h-screen w-full bg-gradient-to-b from-white to-sky-100">
+      <div className="bg-gradient-to-b from-[#fbfdff] to-sky-100">
+        <Navbar />
+        <main aria-label="Main content">
+          <Hierarchy />
+        </main>
+        <section aria-label="Signup" className="mx-auto w-full max-w-7xl">
+          <JoinUs />
+        </section>
+        <section aria-label="Why Freepare" className="mx-auto w-full max-w-7xl">
           <WhyFreepare />
         </section>
-        <section aria-label="Footer">
+        <section aria-label="FAQ" className="mx-auto w-full max-w-7xl">
+          <FAQ />
+        </section>
+        <section aria-label="Footer" className="mx-auto w-full max-w-7xl">
           <Footer />
         </section>
-        </Box>
-        <SessionExpireDialog />
-        
-      </Box>
-    </Box>
+      </div>
+      <SessionExpireDialog />
+    </div>
   );
 };
 

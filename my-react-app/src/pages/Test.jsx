@@ -1,73 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle, CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import {
-  Typography,
-  CircularProgress,
-  Box,
-  Alert,
-  Card,
-  Radio,
-  RadioGroup,
-  FormControl,
-  FormControlLabel,
-  Button,
-  Grid,
-  Snackbar,
-} from "@mui/material";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"; // Pie chart
 import Navbar from "../components/Navbar";
 import SessionExpireDialog from "../SessionExpireCheck/SessionExpireDialog";
 import DisableCopy from "../Disable/DisableCopy";
 import DisableCapture from "../Disable/DisableCapture";
 
-const useFetchExamData = (examId) => {
-  const [examData, setExamData] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+const API_URL = import.meta.env.VITE_API_URL || "https://api.freepare.com";
+const OPTION_KEYS = ["A", "B", "C", "D"];
 
-  useEffect(() => {
-    if (examId) {
-      setLoading(true);
-      fetch(`https://api.freepare.com/api/exams/${examId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Server Error: ${response.statusText}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setExamData(data);
-        })
-        .catch((err) => {
-          setError(
-            err.message.includes("NetworkError")
-              ? "Network error. Please try again."
-              : err.message
-          );
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-  }, [examId]);
-  
-
-  return { examData, error, loading };
-};
-const processData = (examData) => {
-  // Convert newlines to <br /> tags
-  examData = examData.replace(/\\n/g, "<br />");
-
-  // Convert bold markdown (**) to <b> tag
-  examData = examData.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
-
-    // Convert italic markdown ($text$) to <i> tag
-    examData = examData.replace(/\$(.*?)\$/g, "<i>$1</i>");
-
-  // Convert tilde markdown (~text~) to <u> tag for underline
-  examData = examData.replace(/~(.*?)~/g, "<u>$1</u>");
-
-  return examData;
+const processData = (text) => {
+  if (!text || typeof text !== "string") {
+    return "";
+  }
+  return text
+    .replace(/\\n/g, "<br />")
+    .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+    .replace(/\$(.*?)\$/g, "<i>$1</i>")
+    .replace(/~(.*?)~/g, "<u>$1</u>");
 };
 
 const TestPage = () => {
@@ -75,585 +25,340 @@ const TestPage = () => {
   const queryParams = new URLSearchParams(location.search);
   const examId = queryParams.get("examId");
   const testName = queryParams.get("testName");
-  const { examData, error, loading } = useFetchExamData(examId);
+
+  const [examData, setExamData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [correctAnswers, setCorrectAnswers] = useState(0);
-  const [wrongAnswers, setWrongAnswers] = useState(0);
-  const [unattemptedAnswers, setUnattemptedAnswers] = useState(0);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [processedExamData, setProcessedExamData] = useState(null);
 
   useEffect(() => {
-    if (examData && selectedAnswers) {
-      let correct = 0;
-      let wrong = 0;
-      let unattempted = 0;
-
-      examData.questions.forEach((question) => {
-        const userAnswer = selectedAnswers[question.questionNo];
-        if (userAnswer === undefined) {
-          unattempted += 1;
-        } else if (userAnswer === question.correctAnswer) {
-          correct += 1;
-        } else {
-          wrong += 1;
-        }
-      });
-
-      setCorrectAnswers(correct);
-      setWrongAnswers(wrong);
-      setUnattemptedAnswers(unattempted); // Ensure unattempted is updated
+    if (!examId) {
+      return;
     }
+
+    let isMounted = true;
+    const fetchExam = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await fetch(`${API_URL}/api/exams/${examId}`);
+        if (!response.ok) {
+          throw new Error(`Unable to load exam (${response.status})`);
+        }
+        const data = await response.json();
+        if (!isMounted) {
+          return;
+        }
+        const normalized = {
+          ...data,
+          questions: Array.isArray(data.questions)
+            ? data.questions.map((question) => ({
+                ...question,
+                questionText: processData(question.questionText),
+                explanation: processData(question.explanation),
+              }))
+            : [],
+        };
+        setExamData(normalized);
+      } catch (fetchError) {
+        if (isMounted) {
+          setError(fetchError.message || "Failed to load test.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchExam();
+    return () => {
+      isMounted = false;
+    };
+  }, [examId]);
+
+  const stats = useMemo(() => {
+    if (!examData?.questions?.length) {
+      return { correct: 0, wrong: 0, unattempted: 0, total: 0 };
+    }
+
+    let correct = 0;
+    let wrong = 0;
+    let unattempted = 0;
+
+    examData.questions.forEach((question) => {
+      const selected = selectedAnswers[question.questionNo];
+      if (!selected) {
+        unattempted += 1;
+      } else if (selected === question.correctAnswer) {
+        correct += 1;
+      } else {
+        wrong += 1;
+      }
+    });
+
+    return {
+      correct,
+      wrong,
+      unattempted,
+      total: examData.questions.length,
+    };
   }, [examData, selectedAnswers]);
 
-  useEffect(() => {
-    if (examData) {
-      const processedData = {
-        ...examData,
-        questions: examData.questions.map((question) => ({
-          ...question,
-          questionText: processData(question.questionText),
-          explanation: processData(question.explanation),
-        })),
-      };
-      setProcessedExamData(processedData);
+  const handleSelect = (questionNo, selectedOption) => {
+    if (isSubmitted) {
+      return;
     }
-  }, [examData]);
-
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
-  };
-
-  const handleAnswerChange = (questionNo, selectedOption) => {
-    setSelectedAnswers((prevAnswers) => {
-      if (prevAnswers[questionNo] === selectedOption) {
-        const { [questionNo]: _, ...rest } = prevAnswers;
+    setSelectedAnswers((prev) => {
+      if (prev[questionNo] === selectedOption) {
+        const { [questionNo]: ignored, ...rest } = prev;
         return rest;
       }
-      return {
-        ...prevAnswers,
-        [questionNo]: selectedOption,
-      };
+      return { ...prev, [questionNo]: selectedOption };
     });
   };
 
   const handleSubmit = () => {
-    const totalQuestions = correctAnswers + wrongAnswers + unattemptedAnswers;
-  
-    // Store totalScore as a fraction string (e.g., "2/5")
-    const totalScore = `${correctAnswers}/${totalQuestions}`;
-  
-    const submittedTest = { 
-      answers: selectedAnswers, 
-      examId, 
-      testName, 
-      totalScore // Now stored as a string like "2/5"
-    };
-  
-    window.opener.postMessage(
-      { type: "TEST_COMPLETED", submittedTest },
-      window.location.origin
-    );
-      setIsSubmitted(true);
-  
-    // Scroll to the top of the page after submission
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-  
-
-  useEffect(() => {
-    if (error) {
-      setSnackbarMessage(error);
-      setSnackbarOpen(true);
+    if (!examData?.questions?.length) {
+      return;
     }
-  }, [error]);
 
-  // Pie chart data
-  const pieData = [
-    { name: "Correct", value: correctAnswers },
-    { name: "Wrong", value: wrongAnswers },
-    { name: "Unattempted", value: unattemptedAnswers },
-  ];
+    const submittedTest = {
+      answers: selectedAnswers,
+      examId,
+      testName,
+      totalScore: `${stats.correct}/${stats.total}`,
+    };
+
+    if (window.opener) {
+      window.opener.postMessage({ type: "TEST_COMPLETED", submittedTest }, window.location.origin);
+    }
+
+    setIsSubmitted(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const scorePercent = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
 
   return (
-  <>
-    <DisableCopy />
-    <DisableCapture/>
-    <Navbar />
-    <Box
-      sx={{
-        background: "#e3f2fd",
-        minHeight: "100vh",
-        overflowY: "auto",
-        padding: { xs: 2, md: 4 },
-        
-      }}
-    >
-      <Box
-        sx={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          width: "100%",
-          overflowX: { xs: "auto", md: "visible" }, // Horizontal scroll on mobile
-        }}
-      >
-        {!examId && (
-          <Alert
-            severity="warning"
-            sx={{
-              marginBottom: "1rem",
-              backgroundColor: "#fff3cd",
-              color: "#856404",
-              minWidth: "1200px", // Maintain full width on mobile
-            }}
-          >
-            No exam ID provided. Please navigate here correctly.
-          </Alert>
-        )}
-        {loading && (
-          <Box
-            display="flex"
-            justifyContent="center"
-            sx={{ marginTop: "2rem" }}
-          >
-            <CircularProgress size={50} sx={{ color: "#1976d2" }} />
-          </Box>
-        )}
+    <>
+      <DisableCopy />
+      <DisableCapture />
+      <Navbar />
 
-        {processedExamData && (
-          <Box sx={{ minWidth: "1200px" }}> {/* Ensure content doesn't shrink */}
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              sx={{ marginBottom: "1.5rem",
-              marginTop: { xs: "2rem", sm: "1rem" },
-              justifyContent: { xs: "flex-start", sm: "center" },
-               }}
-            >
-              <Typography
-                variant="h2"
-                gutterBottom
-                sx={{
-                  fontWeight: "550",
-                  color: "#066C98",
-                  textTransform: "Capitalize",
-                }}
-              >
-                {testName || "Freepare Test"}
-              </Typography>
-            </Box>
-            {isSubmitted && (
-              <>
-                <Box
-                  sx={{
-                    padding: "1.5rem",
-                    marginBottom: "1.5rem",
-                    borderRadius: "12px",
-                    border: "1px solid #ddd",
-                    backgroundColor: "#ffffff",
-                    boxShadow: 3,
-                    transition: "all 0.3s ease",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      width: "100%",
-                      justifyContent: "space-between",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <Typography
-                      variant="h3"
-                      sx={{
-                        fontWeight: "600",
-                        color: "#1976d2",
-                        marginBottom: { xs: "1.5rem", sm: "0rem" },
-                        width: { xs: "100%", sm: "auto" },
-                      }}
-                    >
-                      <strong>Test Result</strong>
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        gap: { xs: 1, sm: 2 },
-                        width: { xs: "100%", sm: "45%" },
-                        flexDirection: { xs: "column", sm: "row" },
-                        alignItems: { xs: "flex-start", sm: "center" },
-                      }}
-                    >
-                      <Typography
-                        variant="h4"
-                        sx={{ fontWeight: "600", color: "#4caf50" }}
-                      >
-                        Correct Answers:{" "}
-                        <span style={{ color: "#388e3c" }}>
-                          {correctAnswers}
-                        </span>
-                      </Typography>
-                      <Typography
-                        variant="h4"
-                        sx={{ fontWeight: "600", color: "#f44336" }}
-                      >
-                        Wrong Answers:{" "}
-                        <span style={{ color: "#d32f2f" }}>{wrongAnswers}</span>
-                      </Typography>
-                      <Typography
-                        variant="h4"
-                        sx={{ fontWeight: "600", color: "#9e9e9e" }}
-                      >
-                        Unattempted Answers:{" "}
-                        <span style={{ color: "#616161" }}>
-                          {unattemptedAnswers}
-                        </span>
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Box
-                    sx={{
-                      width: "100%",
-                      maxWidth: "900px",
-                      margin: "0 auto",
-                      display: "flex",
-                      flexDirection: { xs: "column", sm: "row" },
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        flex: 1,
-                        display: "flex",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                          <Pie
-                            data={pieData}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            innerRadius="50%"
-                            outerRadius="80%"
-                            fill="#8884d8"
-                            paddingAngle={5}
-                          >
-                            <Cell key="correct" fill="#4CAF50" />
-                            <Cell key="wrong" fill="#F44336" />
-                            <Cell key="unattempted" fill="#9E9E9E" />
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </Box>
-                    <Box
-                      sx={{
-                        width: "100%",
-                        textAlign: "center",
-                        flex: 1,
-                        display: "flex",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Typography
-                        variant="h3"
-                        sx={{
-                          fontWeight: "700",
-                          color: "#1976d2",
-                          marginBottom: "1rem",
-                          fontSize: { xs: "1.5rem", sm: "2rem" },
-                        }}
-                      >
-                        Your Score: {correctAnswers}/
-                        {correctAnswers + wrongAnswers + unattemptedAnswers}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
-              </>
-            )}
+      <section className="min-h-screen bg-gradient-to-b from-sky-100 to-slate-100 px-4 py-6 sm:px-6">
+        <div className="mx-auto w-full max-w-6xl">
+          {!examId && (
+            <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm font-medium text-amber-800">
+              No exam ID provided. Please open test from hierarchy.
+            </div>
+          )}
 
-            {processedExamData.questions?.length > 0 ? (
-              <Grid container spacing={2}>
-                {processedExamData.questions.map((question, index) => {
-                  const isOptionSelected =
-                    selectedAnswers[question.questionNo] ===
-                    question.correctAnswer;
+          {loading && (
+            <div className="flex items-center justify-center gap-2 rounded-2xl bg-white p-8 text-slate-600 shadow-sm">
+              <Loader2 size={18} className="animate-spin" />
+              Loading test...
+            </div>
+          )}
 
-                  return (
-                    <Grid item xs={12} key={index}>
-                      <Card
-                        sx={{
-                          padding: "1.5rem",
-                          marginBottom: "1.5rem",
-                          borderRadius: "12px",
-                          border: "1px solid #ddd",
-                          backgroundColor: "#ffffff",
-                          boxShadow: 3,
-                          transition: "all 0.3s ease",
-                          width: "100%",
-                        }}
+          {!loading && error && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+              {error}
+            </div>
+          )}
+
+          {!loading && examData && (
+            <>
+              <header className="mb-5 rounded-2xl border border-sky-100 bg-white p-4 shadow-sm sm:p-6">
+                <h1 className="text-2xl font-bold text-[#066C98] sm:text-3xl">
+                  {testName || examData.examName || "Freepare Test"}
+                </h1>
+                <p className="mt-2 text-sm text-slate-600">
+                  Total Questions: {stats.total}
+                </p>
+
+                {isSubmitted && (
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                      <p className="text-xs font-semibold uppercase text-emerald-700">Correct</p>
+                      <p className="text-xl font-bold text-emerald-800">{stats.correct}</p>
+                    </div>
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-3">
+                      <p className="text-xs font-semibold uppercase text-red-700">Wrong</p>
+                      <p className="text-xl font-bold text-red-800">{stats.wrong}</p>
+                    </div>
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                      <p className="text-xs font-semibold uppercase text-slate-600">Unattempted</p>
+                      <p className="text-xl font-bold text-slate-800">{stats.unattempted}</p>
+                    </div>
+                  </div>
+                )}
+
+                {isSubmitted && (
+                  <div className="mt-4">
+                    <div className="mb-1 flex items-center justify-between text-sm font-semibold text-slate-700">
+                      <span>Score</span>
+                      <span>
+                        {stats.correct}/{stats.total}
+                      </span>
+                    </div>
+                    <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
+                      <div
+                        className="h-full rounded-full bg-[#066C98]"
+                        style={{ width: `${scorePercent}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </header>
+
+              <div className="space-y-4">
+                {examData.questions?.length ? (
+                  examData.questions.map((question, index) => {
+                    const selected = selectedAnswers[question.questionNo];
+                    const isCorrect = selected && selected === question.correctAnswer;
+                    const isWrong = selected && selected !== question.correctAnswer;
+
+                    return (
+                      <article
+                        key={`${question.questionNo}-${index}`}
+                        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
                       >
-                        <Typography
-                          variant="h3"
-                          sx={{
-                            fontWeight: "500",
-                            color: "#000",
-                            display: "flex",
-                            marginBottom: "1rem",
-                          }}
-                        >
-                          <strong>{question.questionNo}: </strong>
+                        <div className="mb-4">
+                          <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
+                            Q{question.questionNo || index + 1}
+                          </h2>
                           {question.questionText && (
-                            <span
-                              dangerouslySetInnerHTML={{
-                                __html: question.questionText,
-                              }}
-                              style={{
-                                marginBottom: question.questionImage
-                                  ? "4rem"
-                                  : "0",
-                                flexGrow: 1,
-                                marginLeft: "1rem",
-                                marginRight: "1rem",
-                                fontSize: "1.1rem",
-                              }}
+                            <div
+                              className="mt-2 text-sm leading-6 text-slate-700"
+                              dangerouslySetInnerHTML={{ __html: question.questionText }}
                             />
                           )}
-                        </Typography>
-
-                        {question.questionImage && (
-                          <Box sx={{ marginBottom: "1rem" }}>
+                          {question.questionImage && (
                             <img
                               src={question.questionImage}
                               alt={`Question ${question.questionNo}`}
-                              style={{
-                                width: "90%",
-                                maxHeight: "400px",
-                                objectFit: "contain",
-                                display: "block",
-                                margin: "0 40px",
-                                marginTop: "-40px",
-                              }}
+                              className="mt-3 w-full max-h-96 rounded-xl border border-slate-200 object-contain"
                             />
-                          </Box>
-                        )}
+                          )}
+                        </div>
 
-                        <FormControl
-                          component="fieldset"
-                          sx={{ marginTop: "1rem" }}
-                        >
-                          <RadioGroup
-                            value={selectedAnswers[question.questionNo] || ""}
-                            onChange={(e) =>
-                              handleAnswerChange(
-                                question.questionNo,
-                                e.target.value
-                              )
-                            }
-                          >
-                            {["A", "B", "C", "D"].map((option, i) => {
-                              return (
-                                <FormControlLabel
-                                  key={i}
+                        <div className="space-y-2">
+                          {OPTION_KEYS.map((option) => {
+                            const isSelected = selected === option;
+                            const showCorrect = isSubmitted && question.correctAnswer === option;
+                            const showWrong = isSubmitted && isSelected && question.correctAnswer !== option;
+                            const optionText = question[`option${option}`];
+                            const optionImage = question[`option${option}Image`];
+
+                            return (
+                              <label
+                                key={`${question.questionNo}-${option}`}
+                                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
+                                  showCorrect
+                                    ? "border-emerald-300 bg-emerald-50"
+                                    : showWrong
+                                      ? "border-red-300 bg-red-50"
+                                      : isSelected
+                                        ? "border-sky-300 bg-sky-50"
+                                        : "border-slate-200 bg-white hover:border-slate-300"
+                                } ${isSubmitted ? "cursor-not-allowed" : ""}`}
+                              >
+                                <input
+                                  type="radio"
+                                  name={`question-${question.questionNo}`}
                                   value={option}
-                                  control={<Radio />}
-                                  label={
-                                    <Box
-                                      sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                        width: "100%",
-                                        padding: "10px 0",
-                                      }}
-                                    >
-                                      <Typography
-                                        sx={{
-                                          marginRight: "10px",
-                                          marginLeft: "0px",
-                                          flexGrow: 1,
-                                          fontWeight: "600",
-                                          color: isSubmitted
-                                            ? selectedAnswers[
-                                                question.questionNo
-                                              ] === option
-                                              ? option ===
-                                                question.correctAnswer
-                                                ? "green"
-                                                : "red"
-                                              : "inherit"
-                                            : "inherit",
-                                        }}
-                                      >
-                                        {option}:
-                                      </Typography>
-                                      <Typography
-                                        sx={{
-                                          color: isSubmitted
-                                            ? selectedAnswers[
-                                                question.questionNo
-                                              ] === option
-                                              ? option ===
-                                                question.correctAnswer
-                                                ? "green"
-                                                : "red"
-                                              : "inherit"
-                                            : "inherit",
-                                        }}
-                                      >
-                                        {question[`option${option}`]}
-                                      </Typography>
-                                      {question[`option${option}Image`] && (
-                                        <img
-                                          src={question[`option${option}Image`]}
-                                          alt={`Option ${option}`}
-                                          onLoad={(e) => {
-                                            const img = e.target;
-                                            if (
-                                              img.naturalWidth > 50 ||
-                                              img.naturalHeight > 50
-                                            ) {
-                                              img.style.width = `${Math.max(
-                                                img.naturalWidth,
-                                                50
-                                              )}px`;
-                                            }
-                                          }}
-                                          style={{
-                                            maxWidth: "100px",
-                                            objectFit: "contain",
-                                          }}
-                                        />
-                                      )}
-                                    </Box>
-                                  }
-                                  sx={{
-                                    cursor: "pointer",
-                                    color: isSubmitted
-                                      ? selectedAnswers[question.questionNo] ===
-                                        option
-                                        ? option === question.correctAnswer
-                                          ? "green"
-                                          : "red"
-                                        : "inherit"
-                                      : "inherit",
-                                  }}
+                                  checked={isSelected}
+                                  onChange={() => handleSelect(question.questionNo, option)}
                                   disabled={isSubmitted}
+                                  className="mt-1 h-4 w-4 accent-[#066C98]"
                                 />
-                              );
-                            })}
-                          </RadioGroup>
-                        </FormControl>
+                                <div className="min-w-0 flex-1 text-sm text-slate-700">
+                                  <p>
+                                    <span className="mr-2 font-semibold text-slate-900">{option}.</span>
+                                    {optionText}
+                                  </p>
+                                  {optionImage && (
+                                    <img
+                                      src={optionImage}
+                                      alt={`Option ${option}`}
+                                      className="mt-2 max-h-24 rounded border border-slate-200 object-contain"
+                                    />
+                                  )}
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
 
                         {isSubmitted && (
-                          <>
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                marginTop: "0.5rem",
-                                color: "#1976d2",
-                                fontWeight: "500",
-                              }}
-                            >
-                              <strong>Correct Answer:</strong>{" "}
-                              {question.correctAnswer}
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                marginTop: "0.5rem",
-                                color: "#555",
-                                fontStyle: "italic",
-                              }}
-                            >
-                              <strong>Explanation:</strong>{" "}
-                              <span
-                                dangerouslySetInnerHTML={{
-                                  __html: question.explanation,
-                                }}
+                          <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                            <p className="text-sm font-semibold text-slate-700">
+                              Correct Answer:{" "}
+                              <span className="text-emerald-700">{question.correctAnswer}</span>
+                            </p>
+                            {question.explanation && (
+                              <div
+                                className="text-sm leading-6 text-slate-600"
+                                dangerouslySetInnerHTML={{ __html: question.explanation }}
                               />
-                              {question.explanationImage && (
-                                <img
-                                  src={question.explanationImage}
-                                  alt={`Explanation ${question.questionNo}`}
-                                  style={{
-                                    width: "100%",
-                                    maxHeight: "200px",
-                                    objectFit: "contain",
-                                    display: "block",
-                                  }}
-                                />
-                              )}
-                            </Typography>
-                          </>
+                            )}
+                            {question.explanationImage && (
+                              <img
+                                src={question.explanationImage}
+                                alt={`Explanation ${question.questionNo}`}
+                                className="w-full max-h-64 rounded border border-slate-200 object-contain"
+                              />
+                            )}
+                          </div>
                         )}
-                      </Card>
-                    </Grid>
-                  );
-                })}
-              </Grid>
-            ) : (
-              <Typography variant="body2" sx={{ color: "#555" }}>
-                No questions available for this exam.
-              </Typography>
-            )}
+                      </article>
+                    );
+                  })
+                ) : (
+                  <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+                    No questions available for this exam.
+                  </div>
+                )}
+              </div>
 
-            {!isSubmitted && (
-              <Box
-                display="flex"
-                justifyContent="center"
-                sx={{ marginTop: "2rem",
-                  justifyContent: { xs: "flex-start", sm: "center" },
-                 }}
-              >
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSubmit}
-                  sx={{
-                    fontSize: "1rem",
-                    padding: "0.75rem 2rem",
-                    backgroundColor: "#066C98",
-                    cursor: "pointer",
-                  }}
-                >
-                  Submit
-                </Button>
-              </Box>
-            )}
-          </Box>
-        )}
-      </Box>
-    </Box>
+              {!isSubmitted && examData.questions?.length > 0 && (
+                <div className="mt-6 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="rounded-xl bg-[#066C98] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#045472]"
+                  >
+                    Submit Test
+                  </button>
+                </div>
+              )}
 
-    <Snackbar
-      open={snackbarOpen}
-      autoHideDuration={6000}
-      onClose={handleSnackbarClose}
-    >
-      <Alert
-        onClose={handleSnackbarClose}
-        severity="error"
-        sx={{ width: "100%" }}
-      >
-        {snackbarMessage}
-      </Alert>
-    </Snackbar>
+              {isSubmitted && (
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-4 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+                  <span className="inline-flex items-center gap-1.5 text-emerald-700">
+                    <CheckCircle2 size={16} />
+                    Correct: {stats.correct}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-red-700">
+                    <XCircle size={16} />
+                    Wrong: {stats.wrong}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-slate-600">
+                    <AlertTriangle size={16} />
+                    Unattempted: {stats.unattempted}
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </section>
 
-    <SessionExpireDialog />
-  </>
-);
+      <SessionExpireDialog />
+    </>
+  );
 };
 
 export default TestPage;
